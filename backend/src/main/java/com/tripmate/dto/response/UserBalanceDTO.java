@@ -1,0 +1,23 @@
+package com.tripmate.dto.response;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.math.BigDecimal;
+
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class UserBalanceDTO {
+
+    private Long userId;
+    private String fullName;
+    private String email;
+    private BigDecimal totalFundContributed;
+    private BigDecimal totalPaidOutOfPocket;
+    private BigDecimal totalAmountOwed;
+    private BigDecimal netBalance;
+}

@@ -1,0 +1,136 @@
+package com.tripmate.service.impl;
+
+import com.tripmate.dto.request.CreateTripRequest;
+import com.tripmate.dto.request.JoinTripRequest;
+import com.tripmate.dto.response.TripMemberResponse;
+import com.tripmate.dto.response.TripResponse;
+import com.tripmate.entity.Trip;
+import com.tripmate.entity.TripMember;
+import com.tripmate.entity.User;
+import com.tripmate.enums.Role;
+import com.tripmate.enums.TripStatus;
+import com.tripmate.exception.ResourceNotFoundException;
+import com.tripmate.repository.TripMemberRepository;
+import com.tripmate.repository.TripRepository;
+import com.tripmate.repository.UserRepository;
+import com.tripmate.service.TripService;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.security.SecureRandom;
+import java.util.List;
+
+@Slf4j
+@Service
+@RequiredArgsConstructor
+@Transactional(readOnly = true)
+public class TripServiceImpl implements TripService {
+
+    private final TripRepository tripRepository;
+    private final TripMemberRepository tripMemberRepository;
+    private final UserRepository userRepository;
+
+    @Override
+    @Transactional
+    public TripResponse createTrip(CreateTripRequest request, Long currentUserId) {
+        log.info("Bắt đầu xử lý tạo chuyến đi mới: '{}' bởi người dùng ID: {}", request.getName(), currentUserId);
+        User currentUser = userRepository.findById(currentUserId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy người dùng với ID: " + currentUserId));
+
+        String joinCode = generateUniqueJoinCode();
+
+        Trip trip = Trip.builder()
+                .name(request.getName().trim())
+                .status(TripStatus.PLANNING)
+                .joinCode(joinCode)
+                .build();
+
+        Trip savedTrip = tripRepository.save(trip);
+        log.info("Đã lưu chuyến đi mới với ID: {}, mã join: {}", savedTrip.getId(), joinCode);
+
+        TripMember leaderMember = TripMember.builder()
+                .trip(savedTrip)
+                .user(currentUser)
+                .role(Role.LEADER)
+                .build();
+
+        tripMemberRepository.save(leaderMember);
+        log.info("Đã gán người dùng ID: {} làm Leader cho chuyến đi ID: {}", currentUserId, savedTrip.getId());
+
+        return getTripDetail(savedTrip.getId());
+    }
+
+    @Override
+    @Transactional
+    public TripResponse joinTrip(JoinTripRequest request, Long currentUserId) {
+        String joinCode = request.getJoinCode().trim().toUpperCase();
+        log.info("Bắt đầu xử lý gia nhập chuyến đi với mã: '{}' bởi người dùng ID: {}", joinCode, currentUserId);
+
+        Trip trip = tripRepository.findByJoinCode(joinCode)
+                .orElseThrow(() -> new ResourceNotFoundException("Chuyến đi không tồn tại hoặc mã tham gia không hợp lệ"));
+
+        User currentUser = userRepository.findById(currentUserId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy người dùng với ID: " + currentUserId));
+
+        boolean isAlreadyMember = tripMemberRepository.existsByTripIdAndUserId(trip.getId(), currentUser.getId());
+
+        if (!isAlreadyMember) {
+            TripMember newMember = TripMember.builder()
+                    .trip(trip)
+                    .user(currentUser)
+                    .role(Role.MEMBER)
+                    .build();
+            tripMemberRepository.save(newMember);
+            log.info("Đã thêm thành viên mới ID: {} vào chuyến đi ID: '{}' với vai trò MEMBER", currentUser.getId(), trip.getId());
+        } else {
+            log.info("Người dùng ID: {} đã là thành viên của chuyến đi ID: '{}'", currentUser.getId(), trip.getId());
+        }
+
+        return getTripDetail(trip.getId());
+    }
+
+    @Override
+    public TripResponse getTripDetail(Long tripId) {
+        log.debug("Truy xuất thông tin chi tiết chuyến đi ID: {}", tripId);
+        Trip trip = tripRepository.findById(tripId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy chuyến đi với ID: " + tripId));
+
+        List<TripMember> members = tripMemberRepository.findByTripId(tripId);
+
+        List<TripMemberResponse> memberResponses = members.stream()
+                .map(m -> TripMemberResponse.builder()
+                        .id(m.getId())
+                        .userId(m.getUser().getId())
+                        .fullName(m.getUser().getFullName())
+                        .email(m.getUser().getEmail())
+                        .role(m.getRole())
+                        .build())
+                .toList();
+
+        return TripResponse.builder()
+                .id(trip.getId())
+                .name(trip.getName())
+                .status(trip.getStatus())
+                .joinCode(trip.getJoinCode())
+                .createdAt(trip.getCreatedAt())
+                .members(memberResponses)
+                .build();
+    }
+
+    private String generateUniqueJoinCode() {
+        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        SecureRandom random = new SecureRandom();
+        String code;
+        do {
+            StringBuilder sb = new StringBuilder(6);
+            for (int i = 0; i < 6; i++) {
+                sb.append(chars.charAt(random.nextInt(chars.length())));
+            }
+            code = sb.toString();
+        } while (tripRepository.existsByJoinCode(code));
+        log.debug("Đã sinh mã tham gia ngẫu nhiên duy nhất: {}", code);
+        return code;
+    }
+}

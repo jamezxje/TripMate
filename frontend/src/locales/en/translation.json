@@ -1,0 +1,66 @@
+{
+  "app": {
+    "title": "TripMate",
+    "subtitle": "Smart Group Trip & Expense Management"
+  },
+  "nav": {
+    "trips": "Trips",
+    "fund": "Group Fund",
+    "expenses": "Expenses",
+    "settlement": "Settlement"
+  },
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "loading": "Loading...",
+    "success": "Success",
+    "error": "An error occurred",
+    "confirm": "Confirm",
+    "back": "Back"
+  },
+  "trip": {
+    "list_title": "Trip List",
+    "empty": "No trips found. Create a new trip or join using a code!",
+    "create": "Create New Trip",
+    "join": "Join with Code",
+    "status": {
+      "PLANNING": "Planning",
+      "ONGOING": "Ongoing",
+      "SETTLED": "Settled",
+      "CLOSED": "Closed"
+    }
+  },
+  "expense": {
+    "list_title": "Expense List",
+    "empty": "No expense transactions recorded yet.",
+    "add_new": "Add New Expense",
+    "paid_by_fund": "Paid by Group Fund"
+  },
+  "settlement": {
+    "title": "Trip Settlement",
+    "empty": "Financial balance and suggested money transfers will appear here."
+  },
+  "auth": {
+    "login_title": "Sign In",
+    "login_subtitle": "Manage trips and group expenses effortlessly",
+    "register_title": "Create Account",
+    "register_subtitle": "Start an amazing journey with TripMate",
+    "fullname_label": "Full Name",
+    "email_label": "Email Address",
+    "password_label": "Password",
+    "confirm_password_label": "Confirm Password",
+    "login_button": "Sign In",
+    "logging_in": "Signing in...",
+    "register_button": "Create Account",
+    "registering": "Creating account...",
+    "no_account": "Don't have an account?",
+    "already_have_account": "Already have an account?",
+    "register_now": "Register now",
+    "login_now": "Sign in now",
+    "login_failed": "Login failed. Please check your email and password.",
+    "register_failed": "Registration failed. Please try again later.",
+    "register_success": "Account created successfully! Redirecting...",
+    "password_min_length": "Password must be at least 6 characters.",
+    "password_mismatch": "Confirm password does not match."
+  }
+}

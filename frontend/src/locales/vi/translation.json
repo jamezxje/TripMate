@@ -1,0 +1,66 @@
+{
+  "app": {
+    "title": "TripMate",
+    "subtitle": "Quản lý Chuyến đi & Chi tiêu Nhóm Tối ưu"
+  },
+  "nav": {
+    "trips": "Chuyến đi",
+    "fund": "Quỹ chung",
+    "expenses": "Chi tiêu",
+    "settlement": "Quyết toán"
+  },
+  "common": {
+    "save": "Lưu",
+    "cancel": "Hủy",
+    "loading": "Đang tải...",
+    "success": "Thành công",
+    "error": "Có lỗi xảy ra",
+    "confirm": "Xác nhận",
+    "back": "Quay lại"
+  },
+  "trip": {
+    "list_title": "Danh sách Chuyến đi",
+    "empty": "Chưa có chuyến đi nào. Hãy tạo chuyến đi mới hoặc tham gia bằng mã code!",
+    "create": "Tạo chuyến đi mới",
+    "join": "Tham gia bằng mã code",
+    "status": {
+      "PLANNING": "Lên kế hoạch",
+      "ONGOING": "Đang diễn ra",
+      "SETTLED": "Đã quyết toán xong",
+      "CLOSED": "Đã đóng"
+    }
+  },
+  "expense": {
+    "list_title": "Danh sách Chi tiêu",
+    "empty": "Chưa có khoản chi tiêu nào được ghi nhận.",
+    "add_new": "Thêm khoản chi mới",
+    "paid_by_fund": "Thanh toán từ Quỹ chung"
+  },
+  "settlement": {
+    "title": "Quyết toán Chuyến đi",
+    "empty": "Bảng tổng kết tài chính và đề xuất chuyển khoản sẽ xuất hiện tại đây."
+  },
+  "auth": {
+    "login_title": "Đăng nhập",
+    "login_subtitle": "Quản lý chuyến đi và chi tiêu nhóm dễ dàng",
+    "register_title": "Đăng ký tài khoản",
+    "register_subtitle": "Bắt đầu chuyến hành trình tuyệt vời cùng TripMate",
+    "fullname_label": "Họ và tên",
+    "email_label": "Địa chỉ Email",
+    "password_label": "Mật khẩu",
+    "confirm_password_label": "Xác nhận mật khẩu",
+    "login_button": "Đăng nhập",
+    "logging_in": "Đang đăng nhập...",
+    "register_button": "Đăng ký tài khoản",
+    "registering": "Đang đăng ký...",
+    "no_account": "Chưa có tài khoản?",
+    "already_have_account": "Đã có tài khoản?",
+    "register_now": "Đăng ký ngay",
+    "login_now": "Đăng nhập ngay",
+    "login_failed": "Đăng nhập thất bại. Vui lòng kiểm tra lại email và mật khẩu.",
+    "register_failed": "Đăng ký thất bại. Vui lòng thử lại sau.",
+    "register_success": "Đăng ký tài khoản thành công! Đang chuyển hướng...",
+    "password_min_length": "Mật khẩu phải có tối thiểu 6 ký tự.",
+    "password_mismatch": "Mật khẩu xác nhận không khớp."
+  }
+}
