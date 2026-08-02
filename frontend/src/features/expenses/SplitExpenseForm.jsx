@@ -134,13 +134,12 @@ export const SplitExpenseForm = ({ onSuccess, onCancel }) => {
         />
         <Input
           label="Tổng số tiền (VND)"
-          type="number"
-          placeholder="Ví dụ: 300000..."
-          value={amount}
-          onChange={(e) => setAmount(e.target.value)}
+          type="text"
+          inputMode="numeric"
+          placeholder="Ví dụ: 300.000..."
+          value={amount ? new Intl.NumberFormat('vi-VN').format(amount) : ''}
+          onChange={(e) => setAmount(e.target.value.replace(/\D/g, ''))}
           icon={DollarSign}
-          step="1000"
-          min="1000"
           required
         />
       </div>
@@ -271,10 +270,11 @@ export const SplitExpenseForm = ({ onSuccess, onCancel }) => {
                     ) : (
                       <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
                         <input
-                          type="number"
+                          type="text"
+                          inputMode="numeric"
                           placeholder="0"
-                          value={exactAmounts[m.userId] || ''}
-                          onChange={(e) => handleExactAmountChange(m.userId, e.target.value)}
+                          value={exactAmounts[m.userId] ? new Intl.NumberFormat('vi-VN').format(exactAmounts[m.userId]) : ''}
+                          onChange={(e) => handleExactAmountChange(m.userId, e.target.value.replace(/\D/g, ''))}
                           className="w-28 min-h-[36px] px-2 py-1 text-right text-xs font-bold rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-100"
                         />
                         <span className="text-xs font-bold text-slate-500">đ</span>

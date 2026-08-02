@@ -1,23 +1,18 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Compass, LogOut, Globe, UserCheck } from 'lucide-react';
+import { Compass, LogOut, Globe } from 'lucide-react';
 import { useUserStore } from '../../store/useUserStore';
 import { Badge } from '../Badge';
 
 export const Navbar = () => {
   const { t, i18n } = useTranslation();
-  const { currentUser, logout, updateUserRole } = useUserStore();
+  const { currentUser, logout } = useUserStore();
 
   const toggleLanguage = () => {
     const nextLang = i18n.language === 'vi' ? 'en' : 'vi';
     i18n.changeLanguage(nextLang);
   };
 
-  const toggleRole = () => {
-    if (!currentUser) return;
-    const newRole = currentUser.role === 'LEADER' ? 'MEMBER' : 'LEADER';
-    updateUserRole(newRole);
-  };
 
   return (
     <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-slate-200/80 shadow-xs">
@@ -40,20 +35,6 @@ export const Navbar = () => {
 
           {/* Right Actions: User info, Role switch, i18n, Logout */}
           <div className="flex items-center gap-2 sm:gap-3">
-            {/* Dev role switcher badge toggle */}
-            {currentUser && (
-              <button
-                onClick={toggleRole}
-                title="Bấm để đổi vai trò thử nghiệm (Leader/Member)"
-                className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 hover:bg-slate-50 transition-colors text-xs font-medium text-slate-700"
-              >
-                <UserCheck className="w-4 h-4 text-indigo-600" />
-                <span>Role:</span>
-                <Badge variant={currentUser.role === 'LEADER' ? 'leader' : 'member'}>
-                  {currentUser.role}
-                </Badge>
-              </button>
-            )}
 
             {/* Language Toggle */}
             <button

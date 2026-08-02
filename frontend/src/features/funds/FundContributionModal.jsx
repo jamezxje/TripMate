@@ -83,13 +83,12 @@ export const FundContributionModal = ({ isOpen, onClose, onSuccess }) => {
         {/* Amount */}
         <Input
           label="Số tiền đóng quỹ (VND)"
-          type="number"
-          placeholder="Ví dụ: 500000..."
-          value={amount}
-          onChange={(e) => setAmount(e.target.value)}
+          type="text"
+          inputMode="numeric"
+          placeholder="Ví dụ: 500.000..."
+          value={amount ? new Intl.NumberFormat('vi-VN').format(amount) : ''}
+          onChange={(e) => setAmount(e.target.value.replace(/\D/g, ''))}
           icon={DollarSign}
-          step="1000"
-          min="1000"
           required
         />
 
