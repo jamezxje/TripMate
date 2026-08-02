@@ -89,12 +89,28 @@ docker compose down -v
 
 ---
 
-## 🧪 Kiểm Thử Tự Động (Unit & E2E Integration Testing)
+## 🧪 Kiểm Thử Tự Động (Unit & E2E Testing)
 
-Để chạy toàn bộ 37 bài test tự động hóa (bao gồm các test case kiểm tra tiền lẻ, phân quyền Member/Leader và luồng E2E):
+### Backend (JUnit & Mockito)
+Để chạy toàn bộ 37 bài test tự động hóa cho backend (bao gồm các test case kiểm tra tiền lẻ, phân quyền Member/Leader và luồng E2E):
 ```bash
 cd backend
 mvn test
+```
+
+### Frontend (Playwright E2E Tests)
+Dự án sử dụng Playwright để kiểm thử tự động toàn bộ giao diện và luồng nghiệp vụ E2E (Epic 0: Xác thực, Epic 1: Tạo nhóm & Chi tiêu, Epic 2: Quyết toán).
+
+Để chạy test ngầm (Headless Mode):
+```bash
+cd frontend
+npx playwright test
+```
+
+Để mở bảng điều khiển giao diện UI trực quan, theo dõi từng bước test trên trình duyệt thực tế (rất khuyên dùng):
+```bash
+cd frontend
+npx playwright test --ui
 ```
 
 ---
