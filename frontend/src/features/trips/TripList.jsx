@@ -3,8 +3,11 @@ import { useTranslation } from 'react-i18next';
 import { Compass, Plus, KeyRound, Layers, Calendar, ArrowLeft } from 'lucide-react';
 import { Card } from '../../components/Card';
 import { Button } from '../../components/Button';
-import { Alert } from '../../components/Alert';
+import { toast } from 'react-hot-toast';
 import { Badge } from '../../components/Badge';
+import { AnimatedPage } from '../../components/layout/AnimatedPage';
+import { Skeleton } from '../../components/Skeleton';
+import { EmptyState } from '../../components/EmptyState';
 import { CreateTripModal } from './CreateTripModal';
 import { JoinTripModal } from './JoinTripModal';
 import { TripDetailView } from './TripDetailView';
@@ -26,12 +29,10 @@ export const TripList = () => {
 
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isJoinModalOpen, setIsJoinModalOpen] = useState(false);
-  const [error, setError] = useState('');
 
   const loadAllTrips = useCallback(async () => {
     if (currentTrip) return; // Only fetch list if no trip is selected
     setIsLoading(true);
-    setError('');
     try {
       const res = await tripApi.getUserTrips();
       if (res.data) {
@@ -39,7 +40,7 @@ export const TripList = () => {
       }
     } catch (err) {
       console.error('Failed to load trips:', err);
-      setError('Không thể tải danh sách chuyến đi.');
+      toast.error('Không thể tải danh sách chuyến đi.');
     } finally {
       setIsLoading(false);
     }
@@ -58,22 +59,22 @@ export const TripList = () => {
       }
     } catch (err) {
       console.error('Failed to load trip details:', err);
-      setError('Không thể tải chi tiết chuyến đi.');
+      toast.error('Không thể tải chi tiết chuyến đi.');
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="flex flex-col gap-6">
+    <AnimatedPage className="flex flex-col gap-6">
       {/* Top Header & Actions */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-black text-slate-800 tracking-tight flex items-center gap-2">
-            <Compass className="w-7 h-7 text-indigo-600" />
+          <h2 className="text-2xl font-black text-slate-800 dark:text-slate-100 tracking-tight flex items-center gap-2">
+            <Compass className="w-7 h-7 text-indigo-600 dark:text-indigo-400" />
             <span>{currentTrip ? currentTrip.name : t('trip.list_title', 'Danh sách Chuyến đi')}</span>
           </h2>
-          <p className="text-slate-500 text-sm mt-0.5">
+          <p className="text-slate-500 dark:text-slate-400 text-sm mt-0.5">
             {currentTrip 
               ? 'Chi tiết chuyến đi hiện tại.' 
               : 'Tạo mới chuyến đi hoặc gia nhập chuyến đi bằng mã mời để bắt đầu quản lý.'}
@@ -99,8 +100,6 @@ export const TripList = () => {
         )}
       </div>
 
-      {error && <Alert type="error" message={error} onClose={() => setError('')} />}
-
       {/* Main Active Trip Detail or Trip Grid */}
       {currentTrip ? (
         <div className="flex flex-col gap-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
@@ -108,7 +107,7 @@ export const TripList = () => {
             variant="outline" 
             icon={ArrowLeft} 
             onClick={clearCurrentTrip} 
-            className="self-start text-slate-500 hover:text-slate-800 border-slate-200"
+            className="self-start text-slate-500 dark:text-slate-300 hover:text-slate-800 dark:hover:text-white border-slate-200 dark:border-slate-700"
           >
             Quay lại danh sách
           </Button>
@@ -116,7 +115,24 @@ export const TripList = () => {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {trips && trips.length > 0 ? (
+          {isLoading ? (
+            Array.from({ length: 3 }).map((_, i) => (
+              <Card key={`skel-${i}`}>
+                <div className="p-5 flex flex-col gap-3 h-full justify-between">
+                  <div>
+                    <div className="flex items-center justify-between mb-3">
+                      <Skeleton className="w-16 h-5" />
+                      <Skeleton className="w-12 h-4" />
+                    </div>
+                    <Skeleton className="w-3/4 h-6 mb-2" />
+                    <Skeleton className="w-full h-4" />
+                    <Skeleton className="w-2/3 h-4 mt-1" />
+                  </div>
+                  <Skeleton className="w-24 h-4 mt-2" />
+                </div>
+              </Card>
+            ))
+          ) : trips && trips.length > 0 ? (
             trips.map(trip => (
               <Card 
                 key={trip.id} 
@@ -136,6 +152,9 @@ export const TripList = () => {
                     <h3 className="text-lg font-bold text-slate-800 group-hover:text-indigo-600 transition-colors line-clamp-2">
                       {trip.name}
                     </h3>
+                    <p className="text-sm text-slate-500 line-clamp-2 leading-relaxed">
+                      {trip.description}
+                    </p>
                   </div>
                   <div className="flex items-center gap-1.5 text-xs text-slate-500 mt-2">
                     <Calendar className="w-3.5 h-3.5" />
@@ -146,26 +165,18 @@ export const TripList = () => {
             ))
           ) : (
             <div className="col-span-full">
-              <Card className="text-center py-16 px-4 bg-gradient-to-b from-white to-slate-50">
-                <div className="w-16 h-16 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center mx-auto mb-4 border border-indigo-100 shadow-xs">
-                  <Layers className="w-8 h-8" />
-                </div>
-                <h3 className="text-xl font-bold text-slate-800 mb-2">Chưa có Chuyến đi nào</h3>
-                <p className="text-slate-500 text-sm max-w-md mx-auto mb-6">
-                  {t(
-                    'trip.empty',
-                    'Bạn chưa tham gia chuyến đi nào. Hãy tạo chuyến đi mới hoặc tham gia bằng mã code!'
-                  )}
-                </p>
-                <div className="flex items-center justify-center gap-3">
-                  <Button variant="outline" icon={KeyRound} onClick={() => setIsJoinModalOpen(true)}>
-                    Tham gia bằng code
-                  </Button>
-                  <Button icon={Plus} onClick={() => setIsCreateModalOpen(true)}>
-                    Tạo chuyến đi mới
-                  </Button>
-                </div>
-              </Card>
+              <EmptyState
+                icon={Layers}
+                title="Chưa có Chuyến đi nào"
+                description={t('trip.empty', 'Bạn chưa tham gia chuyến đi nào. Hãy tạo chuyến đi mới hoặc tham gia bằng mã code!')}
+              >
+                <Button variant="outline" icon={KeyRound} onClick={() => setIsJoinModalOpen(true)}>
+                  Tham gia bằng code
+                </Button>
+                <Button icon={Plus} onClick={() => setIsCreateModalOpen(true)}>
+                  Tạo chuyến đi mới
+                </Button>
+              </EmptyState>
             </div>
           )}
         </div>
@@ -180,6 +191,6 @@ export const TripList = () => {
         isOpen={isJoinModalOpen}
         onClose={() => setIsJoinModalOpen(false)}
       />
-    </div>
+    </AnimatedPage>
   );
 };

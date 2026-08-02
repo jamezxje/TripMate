@@ -14,8 +14,8 @@ export const MobileNavigation = () => {
   ];
 
   return (
-    <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200/80 shadow-lg px-2 py-1">
-      <nav className="flex justify-around items-center h-14">
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border-t border-slate-200/80 dark:border-slate-800/80 z-50 px-2 py-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] transition-colors duration-300">
+      <div className="flex items-center justify-around">
         {navItems.map((item) => {
           const Icon = item.icon;
           return (
@@ -23,17 +23,24 @@ export const MobileNavigation = () => {
               key={item.path}
               to={item.path}
               className={({ isActive }) =>
-                `flex flex-col items-center justify-center flex-1 h-full py-1 text-[11px] font-semibold transition-colors min-h-[44px] ${
-                  isActive ? 'text-indigo-600 font-bold' : 'text-slate-500 hover:text-slate-800'
+                `relative flex flex-col items-center justify-center flex-1 h-full py-1 text-[10px] font-bold transition-all duration-300 min-h-[44px] ${
+                  isActive ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'
                 }`
               }
             >
-              <Icon className="w-5 h-5 mb-0.5" />
-              <span>{item.label}</span>
+              {({ isActive }) => (
+                <>
+                  {isActive && (
+                    <div className="absolute top-0 w-8 h-1 bg-indigo-600 dark:bg-indigo-400 rounded-b-full shadow-[0_2px_8px_rgba(79,70,229,0.4)] animate-fade-in"></div>
+                  )}
+                  <Icon className={`w-5 h-5 mb-1 transition-transform duration-300 ${isActive ? 'scale-110' : ''}`} strokeWidth={isActive ? 2.5 : 2} />
+                  <span className="tracking-wide">{item.label}</span>
+                </>
+              )}
             </NavLink>
           );
         })}
-      </nav>
-    </div>
+      </div>
+    </nav>
   );
 };

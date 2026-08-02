@@ -1,5 +1,6 @@
 package com.tripmate.service.impl;
 
+import com.tripmate.dto.request.CreateGuestRequest;
 import com.tripmate.dto.request.CreateTripRequest;
 import com.tripmate.dto.request.JoinTripRequest;
 import com.tripmate.dto.response.TripMemberResponse;
@@ -110,6 +111,7 @@ public class TripServiceImpl implements TripService {
                         .fullName(m.getUser().getFullName())
                         .email(m.getUser().getEmail())
                         .role(m.getRole())
+                        .isGuest(m.getUser().isGuest())
                         .build())
                 .toList();
 
@@ -153,15 +155,59 @@ public class TripServiceImpl implements TripService {
     private String generateUniqueJoinCode() {
         String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
         SecureRandom random = new SecureRandom();
-        String code;
-        do {
-            StringBuilder sb = new StringBuilder(6);
+        StringBuilder code = new StringBuilder();
+        
+        boolean isUnique = false;
+        while (!isUnique) {
+            code.setLength(0);
             for (int i = 0; i < 6; i++) {
-                sb.append(chars.charAt(random.nextInt(chars.length())));
+                code.append(chars.charAt(random.nextInt(chars.length())));
             }
-            code = sb.toString();
-        } while (tripRepository.existsByJoinCode(code));
-        log.debug("Đã sinh mã tham gia ngẫu nhiên duy nhất: {}", code);
-        return code;
+            if (!tripRepository.existsByJoinCode(code.toString())) {
+                isUnique = true;
+            }
+        }
+        
+        return code.toString();
+    }
+
+    @Override
+    @Transactional
+    public TripMemberResponse addGuestMember(Long tripId, CreateGuestRequest request, Long currentUserId) {
+        log.info("Thêm guest '{}' vào chuyến đi ID: {} bởi user ID: {}", request.getFullName(), tripId, currentUserId);
+        
+        Trip trip = tripRepository.findById(tripId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy chuyến đi với ID: " + tripId));
+                
+        TripMember currentMember = tripMemberRepository.findByTripId(tripId).stream()
+                .filter(m -> m.getUser().getId().equals(currentUserId))
+                .findFirst()
+                .orElseThrow(() -> new com.tripmate.exception.UnauthorizedAccessException("Bạn không phải thành viên chuyến đi này"));
+                
+        if (currentMember.getRole() != Role.LEADER) {
+            throw new com.tripmate.exception.UnauthorizedAccessException("Chỉ Trưởng nhóm mới có quyền tạo thành viên ảo");
+        }
+
+        User guestUser = User.builder()
+                .fullName(request.getFullName().trim())
+                .isGuest(true)
+                .build();
+        User savedGuest = userRepository.save(guestUser);
+
+        TripMember newMember = TripMember.builder()
+                .trip(trip)
+                .user(savedGuest)
+                .role(Role.GUEST)
+                .build();
+        tripMemberRepository.save(newMember);
+
+        return TripMemberResponse.builder()
+                .id(newMember.getId())
+                .userId(savedGuest.getId())
+                .fullName(savedGuest.getFullName())
+                .email(savedGuest.getEmail())
+                .role(newMember.getRole())
+                .isGuest(savedGuest.isGuest())
+                .build();
     }
 }

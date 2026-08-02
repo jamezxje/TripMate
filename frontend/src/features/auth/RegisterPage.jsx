@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Compass, User, Mail, Lock, UserPlus, Loader2, Globe } from 'lucide-react';
 import api from '../../services/api';
 import { useUserStore } from '../../store/useUserStore';
-import { Alert } from '../../components/Alert';
+import { toast } from 'react-hot-toast';
 
 export const RegisterPage = () => {
   const { t, i18n } = useTranslation();
@@ -18,15 +18,12 @@ export const RegisterPage = () => {
     confirmPassword: '',
   });
   const [loading, setLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
-  const [successMessage, setSuccessMessage] = useState('');
 
   const handleChange = (e) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
     });
-    if (errorMessage) setErrorMessage('');
   };
 
   const toggleLanguage = () => {
@@ -36,17 +33,15 @@ export const RegisterPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setErrorMessage('');
-    setSuccessMessage('');
 
     // Client-side validations
     if (formData.password.length < 6) {
-      setErrorMessage(t('auth.password_min_length'));
+      toast.error(t('auth.password_min_length'));
       return;
     }
 
     if (formData.password !== formData.confirmPassword) {
-      setErrorMessage(t('auth.password_mismatch'));
+      toast.error(t('auth.password_mismatch'));
       return;
     }
 
@@ -62,15 +57,15 @@ export const RegisterPage = () => {
       if (response && response.success && response.data) {
         const { accessToken, user } = response.data;
         setAuth(accessToken, user);
-        setSuccessMessage(t('auth.register_success'));
+        toast.success(t('auth.register_success'));
         setTimeout(() => {
           navigate('/', { replace: true });
         }, 1000);
       } else {
-        setErrorMessage(response?.message || t('auth.register_failed'));
+        toast.error(response?.message || t('auth.register_failed'));
       }
     } catch (err) {
-      setErrorMessage(err.message || t('auth.register_failed'));
+      toast.error(err.message || t('auth.register_failed'));
     } finally {
       setLoading(false);
     }
@@ -112,22 +107,6 @@ export const RegisterPage = () => {
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md z-10 px-4 sm:px-0">
         <div className="bg-slate-800/90 backdrop-blur-xl py-8 px-4 shadow-2xl border border-slate-700/80 sm:rounded-2xl sm:px-10">
-          {errorMessage && (
-            <div className="mb-6">
-              <Alert variant="danger" title={t('common.error')}>
-                {errorMessage}
-              </Alert>
-            </div>
-          )}
-
-          {successMessage && (
-            <div className="mb-6">
-              <Alert variant="success" title={t('common.success')}>
-                {successMessage}
-              </Alert>
-            </div>
-          )}
-
           <form className="space-y-5" onSubmit={handleSubmit}>
             <div>
               <label className="block text-sm font-semibold text-slate-300 mb-1.5">

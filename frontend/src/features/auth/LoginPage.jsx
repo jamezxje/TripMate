@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Compass, Mail, Lock, LogIn, Loader2, Globe } from 'lucide-react';
 import api from '../../services/api';
 import { useUserStore } from '../../store/useUserStore';
-import { Alert } from '../../components/Alert';
+import { toast } from 'react-hot-toast';
 
 export const LoginPage = () => {
   const { t, i18n } = useTranslation();
@@ -17,7 +17,6 @@ export const LoginPage = () => {
     password: '',
   });
   const [loading, setLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
 
   const from = location.state?.from?.pathname || '/';
 
@@ -36,7 +35,6 @@ export const LoginPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setErrorMessage('');
     setLoading(true);
 
     try {
@@ -44,12 +42,13 @@ export const LoginPage = () => {
       if (response && response.success && response.data) {
         const { accessToken, user } = response.data;
         setAuth(accessToken, user);
+        toast.success(t('auth.login_success', 'Đăng nhập thành công!'));
         navigate(from, { replace: true });
       } else {
-        setErrorMessage(response?.message || t('auth.login_failed'));
+        toast.error(response?.message || t('auth.login_failed'));
       }
     } catch (err) {
-      setErrorMessage(err.message || t('auth.login_failed'));
+      toast.error(err.message || t('auth.login_failed'));
     } finally {
       setLoading(false);
     }
@@ -91,14 +90,6 @@ export const LoginPage = () => {
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md z-10 px-4 sm:px-0">
         <div className="bg-slate-800/90 backdrop-blur-xl py-8 px-4 shadow-2xl border border-slate-700/80 sm:rounded-2xl sm:px-10">
-          {errorMessage && (
-            <div className="mb-6">
-              <Alert variant="danger" title={t('common.error')}>
-                {errorMessage}
-              </Alert>
-            </div>
-          )}
-
           <form className="space-y-6" onSubmit={handleSubmit}>
             <div>
               <label className="block text-sm font-semibold text-slate-300 mb-2">

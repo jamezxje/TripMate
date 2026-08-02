@@ -151,3 +151,76 @@ Trong quá trình phát triển cùng AI (Antigravity), hãy thực hiện tuầ
   - Cập nhật `useUserStore` lưu `token` và `currentUser` vào `localStorage`.
   - Cập nhật Axios client (`src/services/api.js`): Đính kèm `Authorization: Bearer <token>` vào mọi request, tự động bẫy lỗi 401 và logout/chuyển hướng về `/login`.
   - Tạo `ProtectedRoute.jsx` đóng gói bảo vệ toàn bộ màn hình ứng dụng chính.
+
+## Phase 7: UI/UX Redesign & Visual Modernization (Nâng cấp Giao diện)
+
+Tài liệu này chi tiết hóa danh sách tác vụ tái thiết kế giao diện (UI Redesign) cho TripMate, nâng cấp giao diện từ chuẩn cơ bản sang phong cách **Modern Travel FinTech Dashboard** (kết hợp Glassmorphism, Micro-interactions, Bố cục thẻ Clean & Sleek).
+
+- [x] **Task 7.1: Chuẩn hóa Design System & Tailwind Theme Config**
+  - Cập nhật `tailwind.config.js` với Bảng màu chính thức (Color Palette):
+    - **Primary:** Violet/Indigo Gradient (`from-violet-600 to-indigo-700`).
+    - **Accent/Money:** Emerald Green (`#10B981`) cho thu/dương số dư, Rose Red (`#F43F5E`) cho chi/âm số dư.
+    - **Background:** Soft Gray (`#F8FAFC` / `#F1F5F9`) kết hợp hiệu ứng Ambient Glow.
+  - Cấu hình Shadow Tokens (`shadow-sm`, `shadow-soft`, `shadow-glow`) và Border Radius (`rounded-2xl` mặc định cho Card).
+  - Tích hợp font chữ hiện đại (Inter hoặc Plus Jakarta Sans).
+
+- [x] **Task 7.2: Redesign Navigation Bar & Header**
+  - Chuyển Navbar sang dạng **Glassmorphism Header** (`backdrop-blur-md bg-white/80 sticky top-0 z-50 border-b border-slate-100`).
+  - Thiết kế lại Navigation Tabs: Chuyển active state từ nút bấm phẳng sang hiệu ứng **Sliding Indicator / Pill Tab** tinh tế.
+  - Tối ưu khu vực User Profile & Language Switcher: Thêm Menu Dropdown bo tròn, hiển thị avatar sắc nét với trạng thái online badge.
+
+- [x] **Task 7.3: Redesign Hero Banner & Tổng quan Chuyến đi (Trip Overview Header)**
+  - Tái thiết kế Hero Banner chuyến đi: Thay khối tím phẳng bằng **Gradient Card với họa tiết Pattern/Mesh ẩn**, bo tròn 24px (`rounded-3xl`).
+  - Nâng cấp phần **Mã mời (Invite Code)**: Thiết kế thành khối Glass Card nhỏ gọn, có hiệu ứng Ripple/Toast khi click nút "Sao chép".
+  - Bổ sung **Dashboard Quick Stats Widget** ngay dưới Banner: 3 thẻ chỉ số nhanh (Tổng Quỹ, Tổng Chi Tiêu, Số dư cá nhân) với icon chuyển màu sinh động.
+
+- [x] **Task 7.4: Modernize Thành viên & Card Layouts**
+  - Thiết kế lại Danh sách Thành viên: Chuyển sang dạng **Grid Card tương tác**.
+  - Mỗi Member Card có: Avatar viền Gradient, Badge Role (`LEADER` / `MEMBER`) bo tròn mềm mại, hiệu ứng `hover:-translate-y-1 transition-all duration-200 hover:shadow-md`.
+  - Tối ưu không gian chứa (Card Container): Thêm viền mảnh (`border border-slate-200/60`), khoảng trắng (padding) thoáng đạt.
+
+- [x] **Task 7.5: Redesign Màn hình Chi tiêu (Expense) & Quyết toán (Settlement)**
+  - **Expense List:** Tái thiết kế từng dòng chi tiêu thành Transaction Card trực quan (Icon phân loại chi tiêu, highlight người trả, hiển thị Avatar người tham gia).
+  - **Settlement Dashboard:** Hiển thị Số dư (Balance) dạng **Meter Bar / Progress Card** với màu sắc phân biệt rõ ràng (Xanh = Nhận lại, Đỏ = Cần đóng).
+  - Tái thiết kế Modal/Drawer (Thêm khoản chi, Đóng quỹ): Sử dụng hiệu ứng Blur Backdrop, mượt mà khi đóng/mở.
+
+- [x] **Task 7.6: Mobile Responsiveness & Bottom Navigation Bar**
+  - Tối ưu giao diện trên Mobile (< 640px): Tự động ẩn Header Tab, bật **Bottom Navigation Bar** để thao tác bằng 1 tay.
+  - Chuyển toàn bộ Table view sang **Card View** trên màn hình nhỏ.
+
+- [x] **Task 7.7: Animations & Page Transitions**
+  - Tích hợp `framer-motion` cho các hiệu ứng chuyển trang (fade-in, slide-up) khi chuyển đổi giữa các tab.
+  - Sử dụng Micro-interactions cho các nút bấm (Ripple effect, Scale on hover).
+
+- [x] **Task 7.8: Empty States & Skeleton Loading**
+  - Cập nhật các trạng thái trống (Empty State) bằng hình minh họa (Illustrations) hoặc SVG Icons lớn, kèm Call-to-Action rõ ràng.
+  - Áp dụng Skeleton Loaders thay vì spinner mặc định khi fetch dữ liệu từ API.
+
+- [x] **Task 7.9: Nâng cấp Toast Notifications**
+  - Thay thế Alert tĩnh bằng hệ thống Toast Notifications hiện đại (như `react-hot-toast` hoặc `sonner`) cho thông báo thành công/lỗi.
+
+- [x] **Task 7.10: Tích hợp Dark Mode (Tùy chọn)**
+  - Cấu hình TailwindCSS hỗ trợ `darkMode: 'class'`.
+  - Bổ sung nút Toggle chuyển đổi Theme sáng/tối.
+  - Review và tinh chỉnh màu sắc các thành phần UI ở chế độ tối.
+
+---
+
+## Phase 8: Tính năng Thành viên Ảo (Guest Member)
+
+- [ ] **Task 8.1: Cập nhật Database Schema**
+  - Sửa đổi bảng `users`: thêm cột `is_guest`, sửa `email` và `password_hash` thành Nullable.
+  - Sửa đổi Enum Role trong `trip_members` thêm giá trị `GUEST`.
+
+- [ ] **Task 8.2: Backend API tạo Guest**
+  - Tạo API `POST /api/trips/{tripId}/guests` (Chỉ Leader được gọi).
+  - Logic: Tạo bản ghi User (`is_guest=true`, email/pass null) -> Tạo bản ghi TripMember (`role=GUEST`).
+  - Trả về thông tin Guest Member.
+
+- [ ] **Task 8.3: Cập nhật API Get Members**
+  - Bổ sung trường `isGuest` vào DTO trả về danh sách thành viên để Frontend phân biệt.
+
+- [ ] **Task 8.4: Frontend UI Quản lý Thành viên**
+  - Thêm nút "Thêm thành viên ảo" vào giao diện Quản lý Chuyến đi (TripDetailView hoặc modal riêng).
+  - Xử lý Form thêm thành viên ảo (gọi API).
+  - Hiển thị danh sách có phân biệt rõ các `MEMBER`, `LEADER` và `GUEST` (sử dụng Badge/màu khác).

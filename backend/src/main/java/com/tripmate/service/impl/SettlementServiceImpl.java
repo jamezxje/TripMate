@@ -91,6 +91,33 @@ public class SettlementServiceImpl implements SettlementService {
         List<Settlement> settled = existingSettlements.stream().filter(Settlement::getIsSettled).toList();
         List<Settlement> unsettled = existingSettlements.stream().filter(s -> !s.getIsSettled()).toList();
 
+        // Calculate Unspent Fund and assign as debt to Leader
+        BigDecimal totalFundCollected = fundContributionRepository.sumAmountByTripId(tripId);
+        if (totalFundCollected == null) totalFundCollected = BigDecimal.ZERO;
+
+        BigDecimal totalFundSpent = expenseRepository.sumAmountPaidByFundByTripId(tripId);
+        if (totalFundSpent == null) totalFundSpent = BigDecimal.ZERO;
+
+        BigDecimal unspentFund = totalFundCollected.subtract(totalFundSpent);
+
+        if (unspentFund.compareTo(BigDecimal.ZERO) > 0) {
+            Long leaderId = members.stream()
+                    .filter(m -> m.getRole() == Role.LEADER)
+                    .map(m -> m.getUser().getId())
+                    .findFirst()
+                    .orElse(null);
+
+            if (leaderId != null) {
+                adjustedBalances.stream()
+                        .filter(b -> b.getUserId().equals(leaderId))
+                        .findFirst()
+                        .ifPresent(b -> {
+                            b.setNetBalance(b.getNetBalance().subtract(unspentFund));
+                            log.info("Đã trừ {} VND từ quỹ dư vào số dư của Leader ID {}", unspentFund, leaderId);
+                        });
+            }
+        }
+
         // Adjust balances based on settled transactions
         for (Settlement s : settled) {
             Long fromUserId = s.getFromUser().getId();

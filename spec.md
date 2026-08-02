@@ -20,7 +20,9 @@
 
 ### 2.1. Quản lý Nhóm & Quỹ (Group & Fund Management)
 - Trạng thái chuyến đi: Lên kế hoạch (Planning) -> Đang diễn ra (Ongoing) -> Đã kết thúc (Completed) -> Đã quyết toán xong (Settled).
-- Cơ chế tham gia: Trưởng nhóm tạo Invite Link/Code. Thành viên sử dụng code/link để gia nhập.
+- Cơ chế tham gia: 
+  - Trưởng nhóm tạo Invite Link/Code. Thành viên sử dụng code/link để gia nhập.
+  - **Thành viên ảo (Guest Member):** Trưởng nhóm có thể tự tạo các thành viên ảo (không cần đăng ký tài khoản) để dễ dàng quản lý việc chia tiền cho những người không dùng app.
 - Góp quỹ ban đầu (Advance Fund): Ghi nhận số tiền đóng quỹ của từng cá nhân, hiển thị tiến độ thu quỹ chung.
 
 ### 2.2. Quản lý Chi tiêu & Quyết toán (Expense Tracking)
@@ -56,6 +58,12 @@
 - **AC 0.3.1:** Đăng xuất xóa Token khỏi `localStorage` và điều hướng người dùng về màn hình Đăng nhập.
 - **AC 0.3.2:** Backend từ chối (401 Unauthorized) tất cả các request không hợp lệ hoặc thiếu Token bảo vệ.
 
+**US 0.4: Quản lý thành viên ảo (Guest Member)**
+- *Là một* Leader, *tôi muốn* tạo thành viên ảo để ghi nhận chi phí cho những người không có tài khoản.
+- **AC 0.4.1:** Leader nhập tên thành viên, hệ thống sinh ra một bản ghi trong Database với cờ `is_guest = true` và không có thông tin email/mật khẩu.
+- **AC 0.4.2:** Thành viên ảo này sẽ tự động tham gia vào chuyến đi với vai trò `GUEST`.
+- **AC 0.4.3:** Thành viên ảo xuất hiện trong danh sách chia tiền như một thành viên bình thường.
+
 ### Epic 1: Quản lý Chi Tiêu
 **US 1.1: Thêm mới khoản chi**
 - *Là một* thành viên, *tôi muốn* ghi lại một khoản chi tiêu mới.
@@ -88,9 +96,10 @@
 ### 4.1. Core Entities
 **1. users**
 - `id` (BIGINT, PK)
-- `email` (VARCHAR 255, Unique, Not Null)
+- `email` (VARCHAR 255, Unique, Nullable) - *Nullable để hỗ trợ Guest Member*
 - `full_name` (VARCHAR 100, Not Null)
-- `password_hash` (VARCHAR 255, Not Null)
+- `password_hash` (VARCHAR 255, Nullable) - *Nullable để hỗ trợ Guest Member*
+- `is_guest` (BOOLEAN, Default False) - *Cờ xác định tài khoản ảo*
 - `created_at` (TIMESTAMP)
 - `updated_at` (TIMESTAMP)
 
@@ -105,7 +114,7 @@
 - `id` (BIGINT, PK)
 - `trip_id` (FK -> trips)
 - `user_id` (FK -> users)
-- `role` (VARCHAR, Not Null) - *Enum: LEADER, MEMBER*
+- `role` (VARCHAR, Not Null) - *Enum: LEADER, MEMBER, GUEST*
 
 ### 4.2. Finance & Tracking Entities
 **4. fund_contributions**

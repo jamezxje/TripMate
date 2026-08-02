@@ -18,11 +18,11 @@ DROP TABLE IF EXISTS users;
 -- 1. Table: users
 CREATE TABLE users (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    email VARCHAR(255) NOT NULL UNIQUE,
+    email VARCHAR(255) UNIQUE,
     full_name VARCHAR(255) NOT NULL,
-    password_hash VARCHAR(255) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT chk_users_email_not_empty CHECK (CHAR_LENGTH(TRIM(email)) > 0)
+    password_hash VARCHAR(255),
+    is_guest BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- 2. Table: trips
@@ -45,7 +45,7 @@ CREATE TABLE trip_members (
     user_id BIGINT NOT NULL,
     role VARCHAR(20) NOT NULL DEFAULT 'MEMBER',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT chk_trip_members_role CHECK (role IN ('LEADER', 'MEMBER')),
+    CONSTRAINT chk_trip_members_role CHECK (role IN ('LEADER', 'MEMBER', 'GUEST')),
     CONSTRAINT uk_trip_members_trip_user UNIQUE (trip_id, user_id),
     CONSTRAINT fk_trip_members_trip FOREIGN KEY (trip_id) REFERENCES trips(id) ON DELETE CASCADE,
     CONSTRAINT fk_trip_members_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE

@@ -7,7 +7,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public enum Role {
     LEADER("Trưởng nhóm"),
-    MEMBER("Thành viên");
+    MEMBER("Thành viên"),
+    GUEST("Khách");
 
     private final String description;
 }

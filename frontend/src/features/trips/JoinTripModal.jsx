@@ -4,7 +4,7 @@ import { KeyRound } from 'lucide-react';
 import { Modal } from '../../components/Modal';
 import { Input } from '../../components/Input';
 import { Button } from '../../components/Button';
-import { Alert } from '../../components/Alert';
+import { toast } from 'react-hot-toast';
 import { tripApi } from './tripApi';
 import { useTripStore } from '../../store/useTripStore';
 
@@ -13,27 +13,26 @@ export const JoinTripModal = ({ isOpen, onClose }) => {
   const { setCurrentTrip } = useTripStore();
   const [joinCode, setJoinCode] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!joinCode.trim()) {
-      setError('Vui lòng nhập mã tham gia');
+      toast.error('Vui lòng nhập mã tham gia');
       return;
     }
 
     setIsLoading(true);
-    setError('');
 
     try {
       const res = await tripApi.joinTrip(joinCode.trim());
       if (res.data) {
+        toast.success('Gia nhập chuyến đi thành công!');
         setCurrentTrip(res.data);
         setJoinCode('');
         onClose();
       }
     } catch (err) {
-      setError(err.message || 'Mã tham gia không hợp lệ hoặc chuyến đi không tồn tại.');
+      toast.error(err.message || 'Mã tham gia không hợp lệ hoặc chuyến đi không tồn tại.');
     } finally {
       setIsLoading(false);
     }
@@ -42,7 +41,6 @@ export const JoinTripModal = ({ isOpen, onClose }) => {
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={t('trip.join', 'Tham gia bằng mã code')}>
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-        {error && <Alert type="error" message={error} onClose={() => setError('')} />}
 
         <Input
           label="Mã mời chuyến đi (Join Code)"

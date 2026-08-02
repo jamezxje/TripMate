@@ -1,11 +1,14 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Receipt, Plus, RefreshCw, Wallet, UserCheck, Calendar } from 'lucide-react';
-import { Card, CardHeader, CardBody } from '../../components/Card';
+import { Card } from '../../components/Card';
 import { Button } from '../../components/Button';
 import { Modal } from '../../components/Modal';
 import { Badge } from '../../components/Badge';
-import { Alert } from '../../components/Alert';
+import { AnimatedPage } from '../../components/layout/AnimatedPage';
+import { Skeleton } from '../../components/Skeleton';
+import { EmptyState } from '../../components/EmptyState';
+import { toast } from 'react-hot-toast';
 import { SplitExpenseForm } from './SplitExpenseForm';
 import { expenseApi } from './expenseApi';
 import { useTripStore } from '../../store/useTripStore';
@@ -16,21 +19,27 @@ export const ExpenseList = () => {
   const { currentTrip } = useTripStore();
   const [expenses, setExpenses] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(5);
+  
+  // Filter state
+  const [filterDate, setFilterDate] = useState('');
 
   const fetchExpenses = useCallback(async () => {
     if (!currentTrip?.id) return;
     setIsLoading(true);
-    setError('');
 
     try {
       const res = await expenseApi.getExpensesByTripId(currentTrip.id);
       if (res.data) {
         setExpenses(res.data);
+        setCurrentPage(1); // Reset to first page when new data loads
       }
     } catch (err) {
-      setError(err.message || 'Không thể tải danh sách chi tiêu');
+      toast.error(err.message || 'Không thể tải danh sách chi tiêu');
     } finally {
       setIsLoading(false);
     }
@@ -39,6 +48,14 @@ export const ExpenseList = () => {
   useEffect(() => {
     fetchExpenses();
   }, [fetchExpenses]);
+
+  // Derived state for filtering
+  const filteredExpenses = expenses.filter(item => {
+    if (!filterDate) return true;
+    if (!item.createdAt) return false;
+    const expenseDate = new Date(item.createdAt).toLocaleDateString('en-CA'); // Gets YYYY-MM-DD in local time
+    return expenseDate === filterDate;
+  });
 
   if (!currentTrip) {
     return (
@@ -53,105 +70,245 @@ export const ExpenseList = () => {
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <AnimatedPage className="flex flex-col gap-6">
       {/* Top Header & Actions */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-black text-slate-800 tracking-tight flex items-center gap-2">
-            <Receipt className="w-7 h-7 text-indigo-600" />
+          <h2 className="text-2xl font-black text-slate-800 dark:text-slate-100 tracking-tight flex items-center gap-2">
+            <Receipt className="w-7 h-7 text-indigo-600 dark:text-indigo-400" />
             <span>{t('expense.list_title', 'Danh sách Chi tiêu')} - {currentTrip.name}</span>
           </h2>
-          <p className="text-slate-500 text-sm mt-0.5">
+          <p className="text-slate-500 dark:text-slate-400 text-sm mt-0.5">
             Ghi chép và phân bổ các khoản chi trong chuyến đi.
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
-          <Button variant="outline" icon={RefreshCw} onClick={fetchExpenses} isLoading={isLoading}>
-            Tải lại
-          </Button>
-          <Button icon={Plus} onClick={() => setIsModalOpen(true)}>
-            Thêm khoản chi mới
-          </Button>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+          <div className="flex items-center gap-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-1.5 shadow-sm">
+            <Calendar className="w-4 h-4 text-slate-500 dark:text-slate-400" />
+            <input 
+              type="date"
+              className="bg-transparent border-none text-sm text-slate-700 dark:text-slate-200 outline-none focus:ring-0 p-0 w-32"
+              value={filterDate}
+              onChange={(e) => {
+                setFilterDate(e.target.value);
+                setCurrentPage(1);
+              }}
+            />
+            {filterDate && (
+              <button 
+                onClick={() => { setFilterDate(''); setCurrentPage(1); }}
+                className="text-slate-400 hover:text-rose-500 transition-colors text-xs font-medium ml-1"
+              >
+                Xóa
+              </button>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" icon={RefreshCw} onClick={fetchExpenses} isLoading={isLoading}>
+              Tải lại
+            </Button>
+            <Button icon={Plus} onClick={() => setIsModalOpen(true)}>
+              Thêm mới
+            </Button>
+          </div>
         </div>
       </div>
-
-      {error && <Alert type="error" message={error} onClose={() => setError('')} />}
-
-      {/* Expenses History List */}
-      {expenses && expenses.length > 0 ? (
-        <div className="grid grid-cols-1 gap-4">
-          {expenses.map((item) => (
-            <Card key={item.id} className="hover:border-indigo-200 transition-colors">
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-4 mb-4">
-                <div className="flex items-start gap-3">
-                  <div className="p-3 bg-indigo-50 text-indigo-600 rounded-2xl shrink-0 mt-0.5">
+      
+      {/* Expense List */}
+      {isLoading ? (
+        <div className="flex flex-col gap-4">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <Card key={`exp-skel-${i}`} className="p-5 flex flex-col sm:flex-row justify-between gap-4">
+              <div className="flex items-start gap-4">
+                <Skeleton className="w-12 h-12 rounded-2xl" />
+                <div className="flex flex-col gap-2 w-48 sm:w-64">
+                  <Skeleton className="w-full h-6" />
+                  <Skeleton className="w-2/3 h-4" />
+                </div>
+              </div>
+              <div className="flex flex-col items-end gap-2">
+                <Skeleton className="w-24 h-8" />
+                <Skeleton className="w-20 h-5" />
+              </div>
+            </Card>
+          ))}
+        </div>
+      ) : filteredExpenses && filteredExpenses.length > 0 ? (
+        <>
+          <div className="grid grid-cols-1 gap-4">
+            {filteredExpenses.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((item) => (
+            <Card key={item.id} className="hover:-translate-y-1 hover:shadow-md transition-all duration-300 border-slate-200/60 dark:border-slate-700 overflow-hidden group !p-0">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-5 bg-white dark:bg-slate-800 relative">
+                {/* Decorative side accent */}
+                <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-rose-400 to-orange-400 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                
+                <div className="flex items-start gap-4">
+                  <div className="p-3.5 bg-gradient-to-br from-rose-50 to-orange-50 dark:from-rose-900/30 dark:to-orange-900/20 text-rose-500 dark:text-rose-400 rounded-2xl shrink-0 border border-rose-100/50 dark:border-rose-800/50 shadow-inner">
                     <Receipt className="w-6 h-6" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-black text-slate-800">{item.description}</h3>
-                    <div className="flex flex-wrap items-center gap-2 mt-1 text-xs text-slate-500">
-                      <span className="flex items-center gap-1">
-                        <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                    <h3 className="text-lg font-black text-slate-800 dark:text-slate-100 group-hover:text-rose-600 dark:group-hover:text-rose-400 transition-colors">{item.description}</h3>
+                    <div className="flex flex-wrap items-center gap-2 mt-1.5 text-[11px] font-medium text-slate-500 dark:text-slate-400">
+                      <span className="flex items-center gap-1.5 bg-slate-100/80 dark:bg-slate-700/80 px-2 py-0.5 rounded-full">
+                        <Calendar className="w-3 h-3 text-slate-400 dark:text-slate-300" />
                         {formatDate(item.createdAt)}
                       </span>
                       <span>•</span>
-                      <span>Người ghi: <strong className="text-slate-700">{item.createdByName}</strong></span>
+                      <span className="flex items-center gap-1">Người tạo: <strong className="text-slate-700 dark:text-slate-200">{item.createdByName}</strong></span>
                     </div>
                   </div>
                 </div>
 
-                <div className="flex flex-col md:items-end">
-                  <span className="text-2xl font-black text-indigo-600">
+                <div className="flex flex-col md:items-end mt-2 md:mt-0">
+                  <span className="text-2xl font-black text-slate-800 dark:text-slate-100 tracking-tight">
                     {formatCurrency(item.amount)}
                   </span>
-                  <div className="mt-1 flex items-center gap-1.5">
+                  <div className="mt-1.5 flex items-center gap-2">
                     {item.isPaidByFund ? (
-                      <Badge variant="settled" className="gap-1">
-                        <Wallet className="w-3 h-3" /> Trả từ Quỹ chung
+                      <Badge variant="settled" className="gap-1 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800/50">
+                        <Wallet className="w-3.5 h-3.5" /> Trả từ Quỹ
                       </Badge>
                     ) : (
-                      <span className="text-xs text-slate-500 font-medium">
-                        Trả bởi: <strong className="text-slate-800">{item.payerName}</strong>
-                      </span>
+                      <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 font-medium bg-slate-50 dark:bg-slate-800 px-2.5 py-1 rounded-full border border-slate-200 dark:border-slate-700">
+                        <span>Trả bởi:</span>
+                        <div className="w-4 h-4 rounded-full bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-400 font-bold text-[8px] flex items-center justify-center">
+                          {item.payerName?.charAt(0)}
+                        </div>
+                        <strong className="text-slate-700 dark:text-slate-200">{item.payerName}</strong>
+                      </div>
                     )}
-                    <Badge variant="info">{item.splitType}</Badge>
+                    <Badge variant="info" className="bg-indigo-50 text-indigo-700 border-indigo-200">{item.splitType}</Badge>
                   </div>
                 </div>
               </div>
 
-              {/* Splits List */}
-              <div>
-                <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
-                  Phân bổ chi phí ({item.splits?.length || 0} người chịu)
+              {/* Splits List (Avatar based) */}
+              <div className="bg-slate-50/50 dark:bg-slate-800/50 border-t border-slate-100 dark:border-slate-700/50 p-4">
+                <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-3">
+                  Phân bổ ({item.splits?.length || 0} người)
                 </p>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+                <div className="flex flex-wrap gap-2 sm:gap-3">
                   {item.splits?.map((split) => (
                     <div
                       key={split.id}
-                      className="p-2.5 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between text-xs"
+                      className="pl-1 pr-3 py-1 rounded-full bg-white border border-slate-200/80 flex items-center gap-2 shadow-sm hover:border-indigo-200 hover:shadow transition-all"
                     >
-                      <span className="font-semibold text-slate-700 truncate max-w-[100px]">
-                        {split.userName}
-                      </span>
-                      <span className="font-bold text-slate-900">
-                        {formatCurrency(split.amountOwed)}
-                      </span>
+                      <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-violet-100 to-indigo-100 text-indigo-700 font-bold text-[10px] flex items-center justify-center border border-white shadow-sm shrink-0">
+                        {split.userName?.charAt(0)}
+                      </div>
+                      <div className="flex flex-col leading-none py-0.5">
+                        <span className="font-bold text-slate-700 text-[11px] truncate max-w-[80px]">
+                          {split.userName}
+                        </span>
+                        <span className="font-black text-rose-600 text-[10px] mt-0.5">
+                          {formatCurrency(split.amountOwed)}
+                        </span>
+                      </div>
                     </div>
                   ))}
                 </div>
               </div>
             </Card>
-          ))}
-        </div>
+            ))}
+          </div>
+
+          {/* Pagination Controls */}
+          {filteredExpenses.length > 0 && (
+            <div className="flex flex-col sm:flex-row items-center justify-between mt-6 bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm gap-4">
+              <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-start">
+                <span className="text-sm text-slate-500 dark:text-slate-400 font-medium">
+                  Hiển thị {((currentPage - 1) * itemsPerPage) + 1} - {Math.min(currentPage * itemsPerPage, filteredExpenses.length)} / {filteredExpenses.length}
+                </span>
+                
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-slate-500 dark:text-slate-400">Số dòng:</span>
+                  <select 
+                    className="text-sm border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-200 rounded-lg px-2 py-1 outline-none focus:border-indigo-500 dark:focus:border-indigo-500 transition-colors"
+                    value={itemsPerPage}
+                    onChange={(e) => {
+                      setItemsPerPage(Number(e.target.value));
+                      setCurrentPage(1);
+                    }}
+                  >
+                    {[5, 10, 20, 50, 75, 100].map(size => (
+                      <option key={size} value={size}>{size}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {filteredExpenses.length > itemsPerPage && (
+                <div className="flex items-center gap-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    disabled={currentPage === 1}
+                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                    className="px-3"
+                  >
+                    Trước
+                  </Button>
+                  
+                  <div className="flex items-center gap-1">
+                    {Array.from({ length: Math.ceil(filteredExpenses.length / itemsPerPage) }).map((_, i) => {
+                      // Simple logic to show only surrounding pages if there are many pages
+                      const totalPages = Math.ceil(filteredExpenses.length / itemsPerPage);
+                      if (
+                        i === 0 || 
+                        i === totalPages - 1 || 
+                        (i >= currentPage - 2 && i <= currentPage)
+                      ) {
+                        return (
+                          <button
+                            key={i}
+                            onClick={() => setCurrentPage(i + 1)}
+                            className={`w-8 h-8 rounded-lg text-sm font-bold transition-colors ${
+                              currentPage === i + 1 
+                                ? 'bg-indigo-600 text-white shadow-md' 
+                                : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-700 dark:text-slate-300 dark:hover:bg-slate-600'
+                            }`}
+                          >
+                            {i + 1}
+                          </button>
+                        );
+                      } else if (i === currentPage - 3 || i === currentPage + 1) {
+                        return <span key={i} className="text-slate-400 dark:text-slate-500">...</span>;
+                      }
+                      return null;
+                    })}
+                  </div>
+
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    disabled={currentPage === Math.ceil(filteredExpenses.length / itemsPerPage)}
+                    onClick={() => setCurrentPage(p => Math.min(Math.ceil(filteredExpenses.length / itemsPerPage), p + 1))}
+                    className="px-3"
+                  >
+                    Sau
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
+        </>
       ) : (
-        <Card className="text-center py-12">
-          <Receipt className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-          <h3 className="text-lg font-bold text-slate-800">Chưa có khoản chi nào</h3>
-          <p className="text-slate-500 text-sm mt-1">
-            Bấm "Thêm khoản chi mới" để bắt đầu ghi chép chi tiêu cho chuyến đi!
-          </p>
-        </Card>
+        <EmptyState
+          icon={Receipt}
+          title={filterDate ? "Không có chi tiêu nào trong ngày này" : "Chưa có khoản chi nào"}
+          description={filterDate ? "Vui lòng chọn ngày khác hoặc xóa bộ lọc." : "Bấm 'Thêm mới' để bắt đầu ghi chép chi tiêu cho chuyến đi!"}
+        >
+          {filterDate ? (
+            <Button variant="outline" onClick={() => { setFilterDate(''); setCurrentPage(1); }}>
+              Xóa bộ lọc ngày
+            </Button>
+          ) : (
+            <Button icon={Plus} onClick={() => setIsModalOpen(true)}>
+              Thêm khoản chi mới
+            </Button>
+          )}
+        </EmptyState>
       )}
 
       {/* Create Expense Modal */}
@@ -169,6 +326,6 @@ export const ExpenseList = () => {
           onCancel={() => setIsModalOpen(false)}
         />
       </Modal>
-    </div>
+    </AnimatedPage>
   );
 };

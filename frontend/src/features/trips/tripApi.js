@@ -5,4 +5,5 @@ export const tripApi = {
   joinTrip: (joinCode) => api.post('/trips/join', { joinCode }),
   getTripDetail: (tripId) => api.get(`/trips/${tripId}`),
   getUserTrips: () => api.get('/trips/me'),
+  addGuest: (tripId, fullName) => api.post(`/trips/${tripId}/guests`, { fullName }),
 };

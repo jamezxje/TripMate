@@ -4,7 +4,7 @@ import { DollarSign, UserCheck } from 'lucide-react';
 import { Modal } from '../../components/Modal';
 import { Input } from '../../components/Input';
 import { Button } from '../../components/Button';
-import { Alert } from '../../components/Alert';
+import { toast } from 'react-hot-toast';
 import { fundApi } from './fundApi';
 import { useTripStore } from '../../store/useTripStore';
 
@@ -17,25 +17,23 @@ export const FundContributionModal = ({ isOpen, onClose, onSuccess }) => {
   );
   const [amount, setAmount] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!currentTrip?.id) {
-      setError('Chưa chọn chuyến đi');
+      toast.error('Chưa chọn chuyến đi');
       return;
     }
     if (!selectedUserId) {
-      setError('Vui lòng chọn người đóng quỹ');
+      toast.error('Vui lòng chọn người đóng quỹ');
       return;
     }
     if (!amount || parseFloat(amount) <= 0) {
-      setError('Số tiền đóng quỹ phải lớn hơn 0');
+      toast.error('Số tiền đóng quỹ phải lớn hơn 0');
       return;
     }
 
     setIsLoading(true);
-    setError('');
 
     try {
       await fundApi.contributeToFund(
@@ -43,11 +41,12 @@ export const FundContributionModal = ({ isOpen, onClose, onSuccess }) => {
         Number(selectedUserId),
         parseFloat(amount)
       );
+      toast.success('Ghi nhận đóng quỹ thành công!');
       setAmount('');
       onClose();
       if (onSuccess) onSuccess();
     } catch (err) {
-      setError(err.message || 'Ghi nhận đóng quỹ thất bại');
+      toast.error(err.message || 'Ghi nhận đóng quỹ thất bại');
     } finally {
       setIsLoading(false);
     }
@@ -56,7 +55,6 @@ export const FundContributionModal = ({ isOpen, onClose, onSuccess }) => {
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Đóng tiền Quỹ chung">
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-        {error && <Alert type="error" message={error} onClose={() => setError('')} />}
 
         {/* User select */}
         <div className="w-full flex flex-col gap-1.5">

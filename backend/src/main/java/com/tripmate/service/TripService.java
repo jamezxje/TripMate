@@ -13,4 +13,6 @@ public interface TripService {
     TripResponse getTripDetail(Long tripId, Long currentUserId);
 
     java.util.List<TripResponse> getUserTrips(Long currentUserId);
+
+    com.tripmate.dto.response.TripMemberResponse addGuestMember(Long tripId, com.tripmate.dto.request.CreateGuestRequest request, Long currentUserId);
 }

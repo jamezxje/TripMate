@@ -4,7 +4,7 @@ import { Compass } from 'lucide-react';
 import { Modal } from '../../components/Modal';
 import { Input } from '../../components/Input';
 import { Button } from '../../components/Button';
-import { Alert } from '../../components/Alert';
+import { toast } from 'react-hot-toast';
 import { tripApi } from './tripApi';
 import { useTripStore } from '../../store/useTripStore';
 
@@ -13,27 +13,26 @@ export const CreateTripModal = ({ isOpen, onClose }) => {
   const { setCurrentTrip } = useTripStore();
   const [name, setName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!name.trim()) {
-      setError('Tên chuyến đi không được để trống');
+      toast.error('Tên chuyến đi không được để trống');
       return;
     }
 
     setIsLoading(true);
-    setError('');
 
     try {
       const res = await tripApi.createTrip(name.trim());
       if (res.data) {
+        toast.success('Tạo chuyến đi thành công!');
         setCurrentTrip(res.data);
         setName('');
         onClose();
       }
     } catch (err) {
-      setError(err.message || 'Tạo chuyến đi thất bại. Vui lòng thử lại.');
+      toast.error(err.message || 'Tạo chuyến đi thất bại. Vui lòng thử lại.');
     } finally {
       setIsLoading(false);
     }
@@ -42,7 +41,6 @@ export const CreateTripModal = ({ isOpen, onClose }) => {
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={t('trip.create', 'Tạo chuyến đi mới')}>
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-        {error && <Alert type="error" message={error} onClose={() => setError('')} />}
 
         <Input
           label="Tên chuyến đi"

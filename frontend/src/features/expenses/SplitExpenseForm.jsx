@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { DollarSign, FileText, UserCheck, Wallet, CheckSquare, Square, AlertTriangle } from 'lucide-react';
 import { Input } from '../../components/Input';
 import { Button } from '../../components/Button';
-import { Alert } from '../../components/Alert';
+import { toast } from 'react-hot-toast';
 import { expenseApi } from './expenseApi';
 import { useUserStore } from '../../store/useUserStore';
 import { useTripStore } from '../../store/useTripStore';
@@ -34,7 +34,6 @@ export const SplitExpenseForm = ({ onSuccess, onCancel }) => {
   const [exactAmounts, setExactAmounts] = useState({});
 
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
 
   // Handle participant checkbox toggle
   const toggleParticipant = (userId) => {
@@ -71,24 +70,23 @@ export const SplitExpenseForm = ({ onSuccess, onCancel }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!description.trim()) {
-      setError('Vui lòng nhập mô tả khoản chi');
+      toast.error('Vui lòng nhập mô tả khoản chi');
       return;
     }
     if (numAmount <= 0) {
-      setError('Số tiền chi phải lớn hơn 0');
+      toast.error('Số tiền chi phải lớn hơn 0');
       return;
     }
     if (selectedUserIds.length === 0) {
-      setError('Phải có ít nhất 1 thành viên tham gia chia tiền');
+      toast.error('Phải có ít nhất 1 thành viên tham gia chia tiền');
       return;
     }
     if (splitType === 'EXACT_AMOUNT' && !isExactSumMatching) {
-      setError('Tổng tiền chia cho từng người không khớp với tổng hóa đơn');
+      toast.error('Tổng tiền chia cho từng người không khớp với tổng hóa đơn');
       return;
     }
 
     setIsLoading(true);
-    setError('');
 
     try {
       const splits = selectedUserIds.map((userId) => ({
@@ -110,9 +108,10 @@ export const SplitExpenseForm = ({ onSuccess, onCancel }) => {
       };
 
       await expenseApi.createExpense(payload);
+      toast.success('Tạo khoản chi thành công!');
       if (onSuccess) onSuccess();
     } catch (err) {
-      setError(err.message || 'Tạo khoản chi thất bại');
+      toast.error(err.message || 'Tạo khoản chi thất bại');
     } finally {
       setIsLoading(false);
     }
@@ -120,7 +119,6 @@ export const SplitExpenseForm = ({ onSuccess, onCancel }) => {
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-      {error && <Alert type="error" message={error} onClose={() => setError('')} />}
 
       {/* Description & Amount */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

@@ -1,8 +1,10 @@
 package com.tripmate.controller;
 
+import com.tripmate.dto.request.CreateGuestRequest;
 import com.tripmate.dto.request.CreateTripRequest;
 import com.tripmate.dto.request.JoinTripRequest;
 import com.tripmate.dto.response.ApiResponse;
+import com.tripmate.dto.response.TripMemberResponse;
 import com.tripmate.dto.response.TripResponse;
 import com.tripmate.service.TripService;
 import jakarta.validation.Valid;
@@ -84,5 +86,22 @@ public class TripController {
                 tripId, response.getName(), response.getMembers() != null ? response.getMembers().size() : 0);
         return ResponseEntity
                 .ok(ApiResponse.success("Lấy thông tin chuyến đi thành công", response));
+    }
+
+    @PostMapping("/{tripId}/guests")
+    public ResponseEntity<ApiResponse<TripMemberResponse>> addGuestMember(
+            @PathVariable Long tripId,
+            @Valid @RequestBody CreateGuestRequest request,
+            @RequestHeader(value = "X-User-Id", required = false) Long headerUserId) {
+        Long currentUserId = SecurityUtils.getCurrentUserId();
+        if (currentUserId == null) {
+            currentUserId = (headerUserId != null) ? headerUserId : 1L;
+        }
+        log.info("API POST /api/v1/trips/{}/guests - Thêm thành viên ảo '{}' bởi user ID: {}", tripId, request.getFullName(), currentUserId);
+        TripMemberResponse response = tripService.addGuestMember(tripId, request, currentUserId);
+        log.info("API POST /api/v1/trips/{}/guests - Thêm thành viên ảo thành công ID: {}", tripId, response.getUserId());
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(ApiResponse.success("Thêm thành viên ảo thành công", response));
     }
 }

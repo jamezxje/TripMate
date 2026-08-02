@@ -28,7 +28,7 @@ export const MainLayout = () => {
   }, [currentTrip, setCurrentTrip]);
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col font-sans text-slate-900 pb-16 md:pb-0">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex flex-col font-sans text-slate-900 dark:text-slate-100 pb-16 md:pb-0 transition-colors duration-300">
       <Navbar />
       <NavigationTabs />
 
