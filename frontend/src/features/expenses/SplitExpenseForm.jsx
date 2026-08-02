@@ -9,7 +9,7 @@ import { useUserStore } from '../../store/useUserStore';
 import { useTripStore } from '../../store/useTripStore';
 import { formatCurrency } from '../../utils/formatters';
 
-export const SplitExpenseForm = ({ onSuccess, onCancel }) => {
+export const SplitExpenseForm = ({ onSuccess, onCancel, fundBalance = 0 }) => {
   const { t } = useTranslation();
   const { currentUser } = useUserStore();
   const { currentTrip } = useTripStore();
@@ -56,6 +56,19 @@ export const SplitExpenseForm = ({ onSuccess, onCancel }) => {
   // Live calculation for validation
   const numAmount = parseFloat(amount) || 0;
   const numParticipants = selectedUserIds.length;
+
+  // Auto select fund if amount <= fundBalance
+  useEffect(() => {
+    if (isLeader && numAmount > 0) {
+      if (numAmount <= fundBalance) {
+        setIsPaidByFund(true);
+        setPayerId('');
+      } else {
+        setIsPaidByFund(false);
+        setPayerId(currentUser?.id || '');
+      }
+    }
+  }, [numAmount, fundBalance, isLeader, currentUser?.id]);
 
   const totalExactSum = selectedUserIds.reduce((sum, id) => {
     const val = parseFloat(exactAmounts[id]) || 0;
@@ -119,6 +132,16 @@ export const SplitExpenseForm = ({ onSuccess, onCancel }) => {
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+
+      {/* Fund Balance Display at the Top */}
+      {isLeader && (
+        <div className="flex items-center gap-2 p-3 bg-indigo-50/50 border border-indigo-100 rounded-xl">
+          <Wallet className="w-5 h-5 text-indigo-600" />
+          <span className="text-sm font-medium text-slate-700">
+            Số dư quỹ chung hiện tại: <strong className="text-indigo-700 text-base">{formatCurrency(fundBalance)}</strong>
+          </span>
+        </div>
+      )}
 
       {/* Description & Amount */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

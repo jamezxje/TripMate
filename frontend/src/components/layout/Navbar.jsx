@@ -32,8 +32,8 @@ export const Navbar = () => {
         <div className="flex items-center justify-between h-16 sm:h-20">
           {/* Logo & Brand */}
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-violet-600 to-indigo-700 flex items-center justify-center text-white shadow-glow">
-              <Compass className="w-6 h-6" />
+            <div className="w-10 h-10 rounded-2xl flex items-center justify-center overflow-hidden shadow-sm border border-slate-200/60 dark:border-slate-700/60">
+              <img src="/logo.png" alt="TripMate Logo" className="w-full h-full object-cover" />
             </div>
             <div>
               <span className="text-xl font-black bg-gradient-to-r from-violet-600 to-indigo-700 bg-clip-text text-transparent tracking-tight">

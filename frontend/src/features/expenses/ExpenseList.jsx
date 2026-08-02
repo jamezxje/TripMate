@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Receipt, Plus, RefreshCw, Wallet, UserCheck, Calendar } from 'lucide-react';
+import { Receipt, Plus, RefreshCw, Wallet, UserCheck, Calendar, ArrowDownCircle, ArrowUpCircle } from 'lucide-react';
 import { Card } from '../../components/Card';
 import { Button } from '../../components/Button';
 import { Modal } from '../../components/Modal';
@@ -11,6 +11,7 @@ import { EmptyState } from '../../components/EmptyState';
 import { toast } from 'react-hot-toast';
 import { SplitExpenseForm } from './SplitExpenseForm';
 import { expenseApi } from './expenseApi';
+import { fundApi } from '../funds/fundApi';
 import { useTripStore } from '../../store/useTripStore';
 import { formatCurrency, formatDate } from '../../utils/formatters';
 
@@ -18,6 +19,7 @@ export const ExpenseList = () => {
   const { t } = useTranslation();
   const { currentTrip } = useTripStore();
   const [expenses, setExpenses] = useState([]);
+  const [fundSummary, setFundSummary] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   
@@ -33,10 +35,17 @@ export const ExpenseList = () => {
     setIsLoading(true);
 
     try {
-      const res = await expenseApi.getExpensesByTripId(currentTrip.id);
-      if (res.data) {
-        setExpenses(res.data);
+      const [expRes, fundRes] = await Promise.all([
+        expenseApi.getExpensesByTripId(currentTrip.id),
+        fundApi.getFundSummary(currentTrip.id)
+      ]);
+      
+      if (expRes.data) {
+        setExpenses(expRes.data);
         setCurrentPage(1); // Reset to first page when new data loads
+      }
+      if (fundRes.data) {
+        setFundSummary(fundRes.data);
       }
     } catch (err) {
       toast.error(err.message || 'Không thể tải danh sách chi tiêu');
@@ -115,6 +124,56 @@ export const ExpenseList = () => {
         </div>
       </div>
       
+      {/* Fund Balance Summary */}
+      {fundSummary && (
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {/* Total Collected */}
+          <Card className="bg-gradient-to-br from-emerald-50 to-teal-50/40 dark:from-emerald-900/20 dark:to-teal-900/10 border-emerald-200/60 dark:border-emerald-800/50 p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">Tổng quỹ đã thu</p>
+                <h3 className="text-xl sm:text-2xl font-black text-emerald-900 dark:text-emerald-50 mt-1">
+                  {formatCurrency(fundSummary?.totalCollected || 0)}
+                </h3>
+              </div>
+              <div className="p-3 bg-emerald-100/80 dark:bg-emerald-800/50 rounded-2xl text-emerald-700 dark:text-emerald-300">
+                <ArrowDownCircle className="w-5 h-5 sm:w-6 sm:h-6" />
+              </div>
+            </div>
+          </Card>
+
+          {/* Total Spent From Fund */}
+          <Card className="bg-gradient-to-br from-rose-50 to-orange-50/40 dark:from-rose-900/20 dark:to-orange-900/10 border-rose-200/60 dark:border-rose-800/50 p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-wider text-rose-600 dark:text-rose-400">Đã chi từ quỹ</p>
+                <h3 className="text-xl sm:text-2xl font-black text-rose-900 dark:text-rose-50 mt-1">
+                  {formatCurrency(fundSummary?.totalSpentFromFund || 0)}
+                </h3>
+              </div>
+              <div className="p-3 bg-rose-100/80 dark:bg-rose-800/50 rounded-2xl text-rose-700 dark:text-rose-300">
+                <ArrowUpCircle className="w-5 h-5 sm:w-6 sm:h-6" />
+              </div>
+            </div>
+          </Card>
+
+          {/* Current Fund Balance */}
+          <Card className="bg-gradient-to-br from-indigo-50 to-violet-50/40 dark:from-indigo-900/20 dark:to-violet-900/10 border-indigo-200/60 dark:border-indigo-800/50 p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">Số dư quỹ hiện tại</p>
+                <h3 className="text-xl sm:text-2xl font-black text-indigo-950 dark:text-indigo-50 mt-1">
+                  {formatCurrency(fundSummary?.currentBalance || 0)}
+                </h3>
+              </div>
+              <div className="p-3 bg-indigo-100/80 dark:bg-indigo-800/50 rounded-2xl text-indigo-700 dark:text-indigo-300">
+                <Wallet className="w-5 h-5 sm:w-6 sm:h-6" />
+              </div>
+            </div>
+          </Card>
+        </div>
+      )}
+
       {/* Expense List */}
       {isLoading ? (
         <div className="flex flex-col gap-4">
@@ -319,6 +378,7 @@ export const ExpenseList = () => {
         maxWidth="max-w-2xl"
       >
         <SplitExpenseForm
+          fundBalance={fundSummary?.currentBalance || 0}
           onSuccess={() => {
             setIsModalOpen(false);
             fetchExpenses();
