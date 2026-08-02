@@ -12,6 +12,8 @@ public interface TripMemberRepository extends JpaRepository<TripMember, Long> {
 
     List<TripMember> findByTripId(Long tripId);
 
+    List<TripMember> findByUserId(Long userId);
+
     Optional<TripMember> findByTripIdAndUserId(Long tripId, Long userId);
 
     boolean existsByTripIdAndUserId(Long tripId, Long userId);

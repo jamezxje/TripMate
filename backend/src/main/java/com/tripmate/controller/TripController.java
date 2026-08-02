@@ -56,10 +56,30 @@ public class TripController {
                 .ok(ApiResponse.success("Gia nhập chuyến đi thành công", response));
     }
 
+    @GetMapping("/me")
+    public ResponseEntity<ApiResponse<java.util.List<TripResponse>>> getMyTrips(
+            @RequestHeader(value = "X-User-Id", required = false) Long headerUserId) {
+        Long currentUserId = SecurityUtils.getCurrentUserId();
+        if (currentUserId == null) {
+            currentUserId = (headerUserId != null) ? headerUserId : 1L;
+        }
+        log.info("API GET /api/v1/trips/me - Lấy danh sách chuyến đi của user ID: {}", currentUserId);
+        java.util.List<TripResponse> response = tripService.getUserTrips(currentUserId);
+        log.info("API GET /api/v1/trips/me - Lấy thành công {} chuyến đi", response.size());
+        return ResponseEntity
+                .ok(ApiResponse.success("Lấy danh sách chuyến đi thành công", response));
+    }
+
     @GetMapping("/{tripId}")
-    public ResponseEntity<ApiResponse<TripResponse>> getTripDetail(@PathVariable Long tripId) {
-        log.info("API GET /api/v1/trips/{} - Lấy thông tin chi tiết chuyến đi", tripId);
-        TripResponse response = tripService.getTripDetail(tripId);
+    public ResponseEntity<ApiResponse<TripResponse>> getTripDetail(
+            @PathVariable Long tripId,
+            @RequestHeader(value = "X-User-Id", required = false) Long headerUserId) {
+        Long currentUserId = SecurityUtils.getCurrentUserId();
+        if (currentUserId == null) {
+            currentUserId = (headerUserId != null) ? headerUserId : 1L;
+        }
+        log.info("API GET /api/v1/trips/{} - Lấy thông tin chi tiết chuyến đi bởi user ID: {}", tripId, currentUserId);
+        TripResponse response = tripService.getTripDetail(tripId, currentUserId);
         log.info("API GET /api/v1/trips/{} - Lấy thành công chi tiết chuyến đi '{}' (Số thành viên: {})",
                 tripId, response.getName(), response.getMembers() != null ? response.getMembers().size() : 0);
         return ResponseEntity

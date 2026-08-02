@@ -6,7 +6,12 @@ export const useTripStore = create((set) => ({
   isLoading: false,
   error: null,
 
-  setCurrentTrip: (trip) => set({ currentTrip: trip, error: null }),
+  setCurrentTrip: (trip) => {
+    if (trip?.id) {
+      localStorage.setItem('activeTripId', trip.id);
+    }
+    set({ currentTrip: trip, error: null });
+  },
 
   setTrips: (trips) => set({ trips, error: null }),
 
@@ -14,5 +19,8 @@ export const useTripStore = create((set) => ({
 
   setError: (error) => set({ error, isLoading: false }),
 
-  clearCurrentTrip: () => set({ currentTrip: null }),
+  clearCurrentTrip: () => {
+    localStorage.removeItem('activeTripId');
+    set({ currentTrip: null });
+  },
 }));

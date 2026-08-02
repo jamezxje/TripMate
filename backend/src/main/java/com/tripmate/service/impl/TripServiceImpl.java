@@ -59,7 +59,7 @@ public class TripServiceImpl implements TripService {
         tripMemberRepository.save(leaderMember);
         log.info("Đã gán người dùng ID: {} làm Leader cho chuyến đi ID: {}", currentUserId, savedTrip.getId());
 
-        return getTripDetail(savedTrip.getId());
+        return getTripDetail(savedTrip.getId(), currentUserId);
     }
 
     @Override
@@ -88,14 +88,18 @@ public class TripServiceImpl implements TripService {
             log.info("Người dùng ID: {} đã là thành viên của chuyến đi ID: '{}'", currentUser.getId(), trip.getId());
         }
 
-        return getTripDetail(trip.getId());
+        return getTripDetail(trip.getId(), currentUserId);
     }
 
     @Override
-    public TripResponse getTripDetail(Long tripId) {
+    public TripResponse getTripDetail(Long tripId, Long currentUserId) {
         log.debug("Truy xuất thông tin chi tiết chuyến đi ID: {}", tripId);
         Trip trip = tripRepository.findById(tripId)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy chuyến đi với ID: " + tripId));
+
+        if (!tripMemberRepository.existsByTripIdAndUserId(tripId, currentUserId)) {
+            throw new com.tripmate.exception.UnauthorizedAccessException("Bạn không có quyền truy cập chuyến đi này");
+        }
 
         List<TripMember> members = tripMemberRepository.findByTripId(tripId);
 
@@ -117,6 +121,33 @@ public class TripServiceImpl implements TripService {
                 .createdAt(trip.getCreatedAt())
                 .members(memberResponses)
                 .build();
+    }
+
+    @Override
+    public List<TripResponse> getUserTrips(Long currentUserId) {
+        log.debug("Truy xuất danh sách chuyến đi cho user ID: {}", currentUserId);
+        
+        // Find all trip memberships for the user
+        List<TripMember> memberships = tripMemberRepository.findByUserId(currentUserId);
+        
+        // Map to TripResponse
+        return memberships.stream()
+                .map(m -> {
+                    Trip trip = m.getTrip();
+                    return TripResponse.builder()
+                            .id(trip.getId())
+                            .name(trip.getName())
+                            .status(trip.getStatus())
+                            .joinCode(trip.getJoinCode())
+                            .createdAt(trip.getCreatedAt())
+                            // We might not need the full members list for the summary, 
+                            // but if the frontend expects it, we can fetch or leave empty.
+                            // The current UI seems to just need trip details.
+                            .build();
+                })
+                // Sort by creation date descending (newest first)
+                .sorted((t1, t2) -> t2.getCreatedAt().compareTo(t1.getCreatedAt()))
+                .toList();
     }
 
     private String generateUniqueJoinCode() {

@@ -10,5 +10,7 @@ public interface TripService {
 
     TripResponse joinTrip(JoinTripRequest request, Long currentUserId);
 
-    TripResponse getTripDetail(Long tripId);
+    TripResponse getTripDetail(Long tripId, Long currentUserId);
+
+    java.util.List<TripResponse> getUserTrips(Long currentUserId);
 }

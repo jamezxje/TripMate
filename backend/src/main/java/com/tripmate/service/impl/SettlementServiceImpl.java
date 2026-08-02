@@ -74,16 +74,50 @@ public class SettlementServiceImpl implements SettlementService {
                     userId, user.getFullName(), totalFundContributed, totalPaidOutOfPocket, totalAmountOwed, netBalance);
         }
 
-        // Check if settlements already exist in DB
+        // Create a deep copy of balances for greedy algorithm to adjust
+        List<UserBalanceDTO> adjustedBalances = balances.stream()
+                .map(b -> UserBalanceDTO.builder()
+                        .userId(b.getUserId())
+                        .fullName(b.getFullName())
+                        .email(b.getEmail())
+                        .totalFundContributed(b.getTotalFundContributed())
+                        .totalPaidOutOfPocket(b.getTotalPaidOutOfPocket())
+                        .totalAmountOwed(b.getTotalAmountOwed())
+                        .netBalance(b.getNetBalance())
+                        .build())
+                .toList();
+
         List<Settlement> existingSettlements = settlementRepository.findByTripId(tripId);
-        if (existingSettlements.isEmpty() && trip.getStatus() != TripStatus.CLOSED) {
-            log.info("Chưa có giao dịch quyết toán trong CSDL, bắt đầu sinh danh sách giao dịch đề xuất tự động");
-            existingSettlements = generateGreedySettlements(trip, members, balances);
-        } else {
-            log.info("Đã tìm thấy {} giao dịch quyết toán có sẵn trong CSDL", existingSettlements.size());
+        List<Settlement> settled = existingSettlements.stream().filter(Settlement::getIsSettled).toList();
+        List<Settlement> unsettled = existingSettlements.stream().filter(s -> !s.getIsSettled()).toList();
+
+        // Adjust balances based on settled transactions
+        for (Settlement s : settled) {
+            Long fromUserId = s.getFromUser().getId();
+            Long toUserId = s.getToUser().getId();
+            BigDecimal amount = s.getAmount();
+
+            adjustedBalances.stream().filter(b -> b.getUserId().equals(fromUserId))
+                    .findFirst().ifPresent(b -> b.setNetBalance(b.getNetBalance().add(amount)));
+            adjustedBalances.stream().filter(b -> b.getUserId().equals(toUserId))
+                    .findFirst().ifPresent(b -> b.setNetBalance(b.getNetBalance().subtract(amount)));
         }
 
-        List<SuggestedTransferDTO> suggestedTransfers = existingSettlements.stream()
+        List<Settlement> finalSettlements = new ArrayList<>(settled);
+
+        if (trip.getStatus() != TripStatus.CLOSED) {
+            log.info("Chuyến đi chưa đóng. Dọn dẹp {} giao dịch chưa thanh toán cũ và sinh lại giao dịch mới", unsettled.size());
+            if (!unsettled.isEmpty()) {
+                settlementRepository.deleteAll(unsettled);
+            }
+            List<Settlement> newlyGenerated = generateGreedySettlements(trip, members, adjustedBalances);
+            finalSettlements.addAll(newlyGenerated);
+        } else {
+            log.info("Chuyến đi đã đóng. Giữ nguyên {} giao dịch đề xuất", existingSettlements.size());
+            finalSettlements.addAll(unsettled);
+        }
+
+        List<SuggestedTransferDTO> suggestedTransfers = finalSettlements.stream()
                 .map(this::mapToSuggestedTransferDTO)
                 .toList();
 
