@@ -208,19 +208,191 @@ Tài liệu này chi tiết hóa danh sách tác vụ tái thiết kế giao di�
 
 ## Phase 8: Tính năng Thành viên Ảo (Guest Member)
 
-- [ ] **Task 8.1: Cập nhật Database Schema**
+- [x] **Task 8.1: Cập nhật Database Schema**
   - Sửa đổi bảng `users`: thêm cột `is_guest`, sửa `email` và `password_hash` thành Nullable.
   - Sửa đổi Enum Role trong `trip_members` thêm giá trị `GUEST`.
 
-- [ ] **Task 8.2: Backend API tạo Guest**
+- [x] **Task 8.2: Backend API tạo Guest**
   - Tạo API `POST /api/trips/{tripId}/guests` (Chỉ Leader được gọi).
   - Logic: Tạo bản ghi User (`is_guest=true`, email/pass null) -> Tạo bản ghi TripMember (`role=GUEST`).
   - Trả về thông tin Guest Member.
 
-- [ ] **Task 8.3: Cập nhật API Get Members**
+- [x] **Task 8.3: Cập nhật API Get Members**
   - Bổ sung trường `isGuest` vào DTO trả về danh sách thành viên để Frontend phân biệt.
 
-- [ ] **Task 8.4: Frontend UI Quản lý Thành viên**
+- [x] **Task 8.4: Frontend UI Quản lý Thành viên**
   - Thêm nút "Thêm thành viên ảo" vào giao diện Quản lý Chuyến đi (TripDetailView hoặc modal riêng).
   - Xử lý Form thêm thành viên ảo (gọi API).
   - Hiển thị danh sách có phân biệt rõ các `MEMBER`, `LEADER` và `GUEST` (sử dụng Badge/màu khác).
+
+---
+
+## Phase 9: Trip Planning Module (Lên kế hoạch Chuyến đi)
+
+> **Mục tiêu:** Mở rộng TripMate từ công cụ *theo dõi chi tiêu* thành **trợ lý lên kế hoạch toàn diện**, giúp nhóm chuẩn bị trước chuyến đi: dự trù ngân sách, phân công việc, và lập lịch trình.
+
+### Epic C — Kế hoạch Chi phí Dự trù (Budget Planning) *(P0 - Ưu tiên cao nhất)*
+
+- [x] **Task 9.1: Database Schema — Bảng `planned_expense_categories` & `planned_expenses`**
+  - Tạo bảng `planned_expense_categories` với các cột:
+    - `id` (BIGINT, PK), `name` (VARCHAR 100, Not Null)
+    - `icon` (VARCHAR 50, Nullable) — emoji hoặc icon code
+    - `color` (VARCHAR 20, Nullable) — mã màu hex
+    - `is_default` (BOOLEAN, Default False) — True = danh mục hệ thống, không xóa được
+    - `created_at` (TIMESTAMP)
+  - Seed 5 danh mục mặc định (`is_default = true`): Đi lại (🚗), Lưu trú (🏨), Ăn uống (🍽️), Vui chơi (🎮), Khác (📌).
+  - Tạo bảng `planned_expenses` với các cột:
+    - `id` (BIGINT, PK), `trip_id` (FK → trips), `title` (VARCHAR, Not Null)
+    - `category_id` (FK → planned_expense_categories, Not Null) — *thay thế Enum cũ*
+    - `estimated_amount` (DECIMAL 12,2, Not Null)
+    - `payment_source` (ENUM: `FUND`, `PERSONAL`)
+    - `responsible_person_id` (FK → users, Nullable) — người phụ trách đặt/mua
+    - `status` (ENUM: `PENDING`, `BOOKED`, `CONFIRMED`, `CANCELLED`)
+    - `actual_expense_id` (FK → expenses, Nullable) — liên kết sau khi confirm
+    - `notes` (TEXT, Nullable), `booking_link` (VARCHAR, Nullable)
+    - `created_by` (FK → users), `created_at` (TIMESTAMP)
+  - Cập nhật `schema.sql` với DDL mới cho cả 2 bảng.
+
+- [ ] **Task 9.2: Backend — JPA Entities & Repositories**
+  - Tạo `PlannedExpenseCategory.java` Entity (mapping bảng `planned_expense_categories`).
+  - Tạo `PlannedExpense.java` Entity với `@ManyToOne` tới `PlannedExpenseCategory`.
+  - Tạo Enum: `PaymentSource` (`FUND`, `PERSONAL`), `PlannedExpenseStatus` (`PENDING`, `BOOKED`, `CONFIRMED`, `CANCELLED`).
+  - Tạo `PlannedExpenseCategoryRepository` và `PlannedExpenseRepository` (Spring Data JPA).
+
+- [ ] **Task 9.3: Backend — DTOs (Categories & Planned Expenses)**
+  - **Category DTOs:**
+    - `CreateCategoryRequest` (name bắt buộc, icon & color tùy chọn).
+    - `UpdateCategoryRequest`.
+    - `ExpenseCategoryResponse` (id, name, icon, color, isDefault).
+  - **Planned Expense DTOs:**
+    - `CreatePlannedExpenseRequest` (validate: title, categoryId, estimatedAmount > 0, paymentSource).
+    - `UpdatePlannedExpenseRequest` (cho phép update status, notes, bookingLink).
+    - `PlannedExpenseResponse` (bao gồm thông tin người phụ trách, category được expand, trạng thái).
+    - `ConfirmPlannedExpenseRequest` (actualAmount).
+    - `BudgetSummaryResponse` (tổng dự trù, breakdown theo category kèm name/icon/color, so sánh vs quỹ hiện có).
+
+- [ ] **Task 9.4: Backend — Service & Business Logic**
+  - Viết `ExpenseCategoryService`:
+    - `getAll()`: Trả về toàn bộ danh mục (mặc định + tùy chỉnh).
+    - `create(request)`: Tạo danh mục mới (không có `is_default`).
+    - `update(id, request)`: Chỉ sửa được danh mục không phải `is_default`.
+    - `delete(id)`: Từ chối nếu `is_default = true` hoặc đang được liên kết bởi planned expense nào đó.
+  - Viết `PlannedExpenseService`:
+    - CRUD: Tạo, cập nhật, xóa, lấy danh sách planned expense theo trip.
+    - Phân quyền: Leader & Member đều được tạo; chỉ người tạo hoặc Leader mới được sửa/xóa.
+    - `getBudgetSummary(tripId)`: Tính tổng estimated, breakdown kèm category info, so sánh với `totalFund` từ `FundContributionService`.
+    - `confirmPlannedExpense(id, actualAmount, currentUserId)`:
+      - Tạo bản ghi `Expense` thực tế (split EQUAL mặc định, Leader có thể chọn lại sau).
+      - Cập nhật `status = CONFIRMED` và gán `actual_expense_id`.
+    - Cảnh báo khi tổng `estimated_amount` của các khoản `FUND` vượt số dư quỹ hiện tại.
+
+- [ ] **Task 9.5: Backend — REST Controllers**
+  - Viết `ExpenseCategoryController`:
+    - `GET /api/v1/expense-categories` — Lấy toàn bộ danh mục (public trong trip).
+    - `POST /api/v1/expense-categories` — Tạo danh mục tùy chỉnh (chỉ Leader).
+    - `PUT /api/v1/expense-categories/{id}` — Sửa danh mục tùy chỉnh (chỉ Leader).
+    - `DELETE /api/v1/expense-categories/{id}` — Xóa danh mục (chỉ Leader, từ chối nếu đang được dùng).
+  - Viết `PlannedExpenseController`:
+    - `POST /api/v1/trips/{tripId}/planned-expenses` — Tạo khoản chi dự trù.
+    - `GET /api/v1/trips/{tripId}/planned-expenses` — Lấy danh sách (filter theo categoryId/status).
+    - `PUT /api/v1/trips/{tripId}/planned-expenses/{id}` — Cập nhật (status, notes, ...).
+    - `DELETE /api/v1/trips/{tripId}/planned-expenses/{id}` — Xóa (chỉ khi status = PENDING).
+    - `POST /api/v1/trips/{tripId}/planned-expenses/{id}/confirm` — Confirm → tạo actual expense.
+    - `GET /api/v1/trips/{tripId}/budget-summary` — Lấy tổng quan ngân sách.
+
+- [ ] **Task 9.6: Frontend — API Client & Store**
+  - Tạo `src/features/planning/planningApi.js` với các hàm:
+    - `categoryApi`: getAll, create, update, delete.
+    - `plannedExpenseApi`: getAll, create, update, delete, confirm, getBudgetSummary.
+  - Tạo `usePlanningStore` (Zustand): quản lý state danh sách categories và planned expenses.
+
+- [ ] **Task 9.7: Frontend — UI Budget Planning**
+  - Tạo tab/trang mới "Kế hoạch" trong navigation (thêm vào cạnh "Chi tiêu", "Quyết toán").
+  - Tạo component `CategoryManager` (chỉ hiển thị với Leader):
+    - Hiển thị danh sách danh mục (icon + màu + tên), phân biệt rõ loại mặc định vs tùy chỉnh.
+    - Nút "Thêm danh mục" + form inline: Tên, Màu (color picker), Icon (emoji input).
+    - Nút Sửa/Xóa cho danh mục tùy chỉnh.
+  - Tạo component `BudgetOverviewCard`:
+    - Hiển thị tổng dự trù vs. tổng quỹ hiện có (Progress Bar / So sánh trực quan).
+    - Breakdown theo danh mục dạng card nhỏ (hiển thị icon + màu từ category).
+    - Cảnh báo màu đỏ nếu dự trù vượt quỹ.
+  - Tạo component `PlannedExpenseList`:
+    - Hiển thị danh sách planned expenses dạng card (icon + màu từ category, status badge, người phụ trách).
+    - Filter theo danh mục và status.
+    - Nút "Confirm" (chuyển sang chi tiêu thực tế) và "Xóa" cho từng item.
+  - Tạo `PlannedExpenseForm` (Modal/Drawer):
+    - Fields: Tên khoản, Danh mục (dropdown dựa vào `planned_expense_categories`), Số tiền dự trù, Nguồn thanh toán, Người phụ trách, Ghi chú, Link đặt hàng.
+    - Validation inline.
+
+---
+
+### Epic A — Danh sách Việc cần làm (Checklist) *(P1 - Nên có)*
+
+- [ ] **Task 9.8: Database Schema — Bảng `trip_checklist_items`**
+  - Tạo bảng `trip_checklist_items` với các cột:
+    - `id` (BIGINT, PK), `trip_id` (FK → trips), `title` (VARCHAR, Not Null)
+    - `description` (TEXT, Nullable), `assignee_id` (FK → users, Nullable)
+    - `status` (ENUM: `TODO`, `IN_PROGRESS`, `DONE`)
+    - `due_date` (DATE, Nullable), `sort_order` (INT, Default 0)
+    - `created_by` (FK → users), `created_at` (TIMESTAMP)
+
+- [ ] **Task 9.9: Backend — Checklist API**
+  - Tạo `ChecklistItem` Entity, `ChecklistItemRepository`.
+  - Tạo DTOs: `CreateChecklistItemRequest`, `UpdateChecklistItemRequest`, `ChecklistItemResponse`.
+  - Viết `ChecklistService`: CRUD + tính % tiến độ (done/total).
+  - Viết `ChecklistController`:
+    - `GET/POST /api/v1/trips/{tripId}/checklist` — Lấy danh sách & tạo item.
+    - `PUT /api/v1/trips/{tripId}/checklist/{id}` — Cập nhật (status, assignee, ...).
+    - `DELETE /api/v1/trips/{tripId}/checklist/{id}` — Xóa item.
+
+- [ ] **Task 9.10: Frontend — UI Checklist**
+  - Tạo `ChecklistPanel` trong tab "Kế hoạch":
+    - Progress bar tổng tiến độ (VD: "5/8 việc đã xong").
+    - Danh sách items có thể tick status, xem assignee, due date.
+    - Filter "Việc của tôi" vs "Tất cả".
+  - Tạo form thêm/sửa checklist item (inline hoặc modal nhỏ).
+
+---
+
+### Epic B — Lịch trình Chuyến đi (Itinerary) *(P2 - Nice to have)*
+
+- [ ] **Task 9.11: Database Schema — Bảng `trip_itinerary_days` & `trip_itinerary_activities`**
+  - Bảng `trip_itinerary_days`: `id`, `trip_id`, `day_number`, `date`, `title`.
+  - Bảng `trip_itinerary_activities`: `id`, `day_id` (FK), `title`, `start_time`, `end_time` (nullable), `location`, `maps_link` (nullable), `notes`, `sort_order`.
+
+- [ ] **Task 9.12: Backend — Itinerary API**
+  - Tạo Entities, Repositories, DTOs cho Day và Activity.
+  - Viết `ItineraryService`: CRUD cho ngày và hoạt động trong ngày.
+  - Viết `ItineraryController`:
+    - `GET/POST /api/v1/trips/{tripId}/itinerary` — Quản lý các ngày trong lịch trình.
+    - `POST /api/v1/trips/{tripId}/itinerary/{dayId}/activities` — Thêm hoạt động vào ngày.
+    - `PUT/DELETE` cho từng activity.
+
+- [ ] **Task 9.13: Frontend — UI Itinerary Timeline**
+  - Tạo `ItineraryView` trong tab "Kế hoạch":
+    - Tab chọn ngày (Day 1, Day 2, ...).
+    - Timeline dọc hiển thị các hoạt động theo giờ.
+    - Nút thêm hoạt động với form: Tên, Giờ, Địa điểm, Ghi chú.
+    - Link mở Google Maps cho địa điểm.
+
+---
+
+### Kiểm thử & Hoàn thiện Phase 9
+
+- [ ] **Task 9.14: Integration Testing — Budget Planning Flow**
+  - Tạo danh mục tùy chỉnh → Kiểm tra hiển thị đúng icon/màu trong dropdown.
+  - Kiểm tra từ chối xóa danh mục đang được dùng và danh mục mặc định.
+  - Tạo planned expense → Xem budget summary → Confirm → Kiểm tra actual expense được tạo đúng.
+  - Kiểm tra cảnh báo khi dự trù vượt quỹ.
+  - Kiểm tra phân quyền: Member không sửa/xóa của người khác; Member không quản lý được danh mục.
+
+- [ ] **Task 9.15: Integration Testing — Checklist & Itinerary**
+  - Tạo checklist items, tick done → Kiểm tra progress bar cập nhật đúng.
+  - Filter "Việc của tôi" hoạt động đúng.
+  - Tạo ngày + activity → Hiển thị đúng thứ tự theo giờ.
+
+- [ ] **Task 9.16: UI/UX Polish**
+  - Đảm bảo tab "Kế hoạch" responsive tốt trên Mobile (Card View thay Table).
+  - Skeleton loading cho budget summary và checklist.
+  - Empty state đẹp cho từng panel khi chưa có dữ liệu.
+  - i18n: Bổ sung translation keys mới vào `vi/translation.json` và `en/translation.json`.

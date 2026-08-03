@@ -7,6 +7,8 @@ CREATE DATABASE IF NOT EXISTS trip_mate_db
 USE trip_mate_db;
 
 -- Drop tables if they exist to allow clean re-runs (in reverse order of dependencies)
+DROP TABLE IF EXISTS planned_expenses;
+DROP TABLE IF EXISTS planned_expense_categories;
 DROP TABLE IF EXISTS settlements;
 DROP TABLE IF EXISTS expense_splits;
 DROP TABLE IF EXISTS expenses;
@@ -130,10 +132,64 @@ CREATE INDEX idx_settlements_trip_id ON settlements(trip_id);
 CREATE INDEX idx_settlements_from_user_id ON settlements(from_user_id);
 CREATE INDEX idx_settlements_to_user_id ON settlements(to_user_id);
 
+-- ============================================================
+-- Phase 2: Trip Planning Module
+-- ============================================================
+
+-- 8. Table: planned_expense_categories
+CREATE TABLE planned_expense_categories (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    icon VARCHAR(50) NULL COMMENT 'Emoji hoặc icon code, VD: 🚗 hoặc car',
+    color VARCHAR(20) NULL COMMENT 'Mã màu hex, VD: #6366F1',
+    is_default BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'TRUE = danh mục hệ thống, không xóa được',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Seed 5 danh mục mặc định
+INSERT INTO planned_expense_categories (name, icon, color, is_default) VALUES
+('Đi lại',  '🚗', '#6366F1', TRUE),
+('Lưu trú', '🏨', '#0EA5E9', TRUE),
+('Ăn uống', '🍽️', '#F59E0B', TRUE),
+('Vui chơi','🎮', '#10B981', TRUE),
+('Khác',    '📌', '#94A3B8', TRUE);
+
+-- 9. Table: planned_expenses
+CREATE TABLE planned_expenses (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    trip_id BIGINT NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    category_id BIGINT NOT NULL,
+    estimated_amount DECIMAL(12,2) NOT NULL,
+    payment_source VARCHAR(10) NOT NULL DEFAULT 'PERSONAL' COMMENT 'FUND | PERSONAL',
+    responsible_person_id BIGINT NULL COMMENT 'Người phụ trách đặt/mua',
+    status VARCHAR(15) NOT NULL DEFAULT 'PENDING' COMMENT 'PENDING | BOOKED | CONFIRMED | CANCELLED',
+    actual_expense_id BIGINT NULL COMMENT 'FK tới expenses sau khi Confirm',
+    notes TEXT NULL,
+    booking_link VARCHAR(500) NULL,
+    created_by BIGINT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT chk_planned_expenses_amount CHECK (estimated_amount > 0),
+    CONSTRAINT chk_planned_expenses_payment_source CHECK (payment_source IN ('FUND', 'PERSONAL')),
+    CONSTRAINT chk_planned_expenses_status CHECK (status IN ('PENDING', 'BOOKED', 'CONFIRMED', 'CANCELLED')),
+    CONSTRAINT fk_planned_expenses_trip FOREIGN KEY (trip_id) REFERENCES trips(id) ON DELETE CASCADE,
+    CONSTRAINT fk_planned_expenses_category FOREIGN KEY (category_id) REFERENCES planned_expense_categories(id),
+    CONSTRAINT fk_planned_expenses_responsible FOREIGN KEY (responsible_person_id) REFERENCES users(id) ON DELETE SET NULL,
+    CONSTRAINT fk_planned_expenses_actual_expense FOREIGN KEY (actual_expense_id) REFERENCES expenses(id) ON DELETE SET NULL,
+    CONSTRAINT fk_planned_expenses_created_by FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Indexes for planned_expenses
+CREATE INDEX idx_planned_expenses_trip_id ON planned_expenses(trip_id);
+CREATE INDEX idx_planned_expenses_category_id ON planned_expenses(category_id);
+CREATE INDEX idx_planned_expenses_status ON planned_expenses(status);
+CREATE INDEX idx_planned_expenses_created_by ON planned_expenses(created_by);
+
+-- ============================================================
+
 -- Initial Sample Seed Users
 INSERT INTO users (id, email, full_name, password_hash) VALUES
 (1, 'anv@example.com', 'Nguyễn Văn A', 'hash123'),
 (2, 'btt@example.com', 'Trần Thị B', 'hash123'),
 (3, 'lvc@example.com', 'Lê Văn C', 'hash123')
 ON DUPLICATE KEY UPDATE email=VALUES(email);
-

@@ -2,6 +2,10 @@
 **Tên dự án:** TripMate
 **Mô hình:** Web Application
 
+> **Phiên bản tài liệu:**
+> - **Phase 1** *(Hoàn thành)*: Authentication, Quản lý Nhóm & Quỹ, Theo dõi Chi tiêu, Quyết toán, UI Redesign, Guest Member.
+> - **Phase 2** *(Đang triển khai)*: Trip Planning Module — Kế hoạch Chi phí Dự trù, Danh sách Việc cần làm, Lịch trình Chuyến đi.
+
 ## 1. Tổng quan Công nghệ (Tech Stack)
 - **Backend:** Java + Spring Boot (RESTful API, JPA/Hibernate, Spring Security, JWT Authentication).
 - **Frontend:** ReactJS (Vite, Tailwind CSS, Zustand/Redux Toolkit, Axios).
@@ -35,6 +39,36 @@
 - **Quyết toán:**
   - Bù trừ tự động: `[Tiền đã đóng quỹ + Tiền ứng ra trả] - [Tổng chi phí cá nhân phải chịu] = Balance`.
   - Đề xuất chuyển khoản bù trừ tối ưu nhất giữa các thành viên.
+
+### 2.3. Trip Planning Module — Lên kế hoạch Chuyến đi *(Phase 2)*
+
+> Mục tiêu: Giúp nhóm **chuẩn bị trước** chuyến đi — dự trù ngân sách, phân công việc, và lập lịch trình hoạt động theo ngày.
+
+#### 2.3.1. Kế hoạch Chi phí Dự trù (Budget Planning)
+- Leader và Member đều có thể tạo các **khoản chi dự trù** (planned expenses) trước chuyến đi.
+- Mỗi khoản chi dự trù gồm: Tên, **Danh mục** (tham chiếu tới bảng `planned_expense_categories`), Số tiền ước tính, Nguồn thanh toán (`FUND` — từ quỹ chung / `PERSONAL` — cá nhân tự trả), Người phụ trách đặt/mua, Trạng thái, Ghi chú và Link đặt hàng (tùy chọn).
+- **Danh mục Chi tiêu (planned_expense_categories):** Là bảng độc lập, hỗ trợ CRUD đầy đủ. Hệ thống cài sẵn các danh mục mặc định (`Đi lại`, `Lưu trú`, `Ăn uống`, `Vui chơi`, `Khác`) — Leader có thể tạo thêm danh mục tùy chỉnh riêng cho chuyến đi. Mỗi danh mục có tên, màu hiển thị và icon (tùy chọn).
+- **Trạng thái khoản dự trù:** `PENDING` (Chưa đặt) → `BOOKED` (Đã đặt) → `CONFIRMED` (Đã xác nhận thực hiện) / `CANCELLED` (Hủy).
+- **Tổng quan ngân sách (Budget Summary):** Hiển thị tổng chi phí dự trù so với tổng quỹ hiện có, breakdown theo danh mục. Cảnh báo khi tổng dự trù vượt quỹ.
+- **Confirm → Actual Expense:** Sau khi khoản chi được thực hiện, Leader/người phụ trách có thể "Confirm" với số tiền thực tế → hệ thống tự động tạo bản ghi `expense` tương ứng trong module Chi tiêu Phase 1, liên kết ngược lại với planned expense.
+- **Phân quyền:**
+  - Leader & Member đều được tạo planned expense.
+  - Chỉ người tạo hoặc Leader mới được sửa/xóa khoản dự trù.
+  - Chỉ Leader hoặc người phụ trách mới được Confirm → tạo actual expense.
+  - Chỉ xóa được khi status = `PENDING` (chưa đặt).
+  - **Danh mục:** Chỉ Leader mới được tạo/sửa/xóa danh mục tùy chỉnh. Danh mục mặc định (system-seeded) không xóa được.
+
+#### 2.3.2. Danh sách Việc cần làm (Checklist)
+- Mỗi chuyến đi có một checklist các công việc cần chuẩn bị (đặt vé, mua đồ, liên hệ hướng dẫn viên, ...).
+- Mỗi checklist item gồm: Tên công việc, Mô tả (tùy chọn), Người phụ trách (Assignee), Hạn hoàn thành (Due date, tùy chọn), Trạng thái (`TODO` / `IN_PROGRESS` / `DONE`).
+- Hiển thị tiến độ tổng thể dạng Progress Bar (VD: "5/8 việc hoàn thành").
+- **Phân quyền:** Leader có thể tạo/sửa/xóa mọi item. Member chỉ tạo item mới và tự cập nhật status của item được giao cho mình.
+
+#### 2.3.3. Lịch trình Chuyến đi (Itinerary)
+- Leader lên lịch trình theo từng ngày: mỗi ngày có tên/chủ đề, mỗi ngày chứa nhiều hoạt động theo giờ.
+- Mỗi hoạt động gồm: Tên, Giờ bắt đầu, Giờ kết thúc (tùy chọn), Địa điểm, Link Google Maps (tùy chọn), Ghi chú.
+- Hiển thị dạng Timeline dọc, sắp xếp theo giờ trong ngày.
+- **Phân quyền:** Chỉ Leader được tạo/sửa/xóa ngày và hoạt động. Member chỉ xem.
 
 ---
 
@@ -86,6 +120,75 @@
 - *Là một* Leader, *tôi muốn* hệ thống tự động chỉ ra ai cần chuyển cho ai.
 - **AC 2.2.1:** Khi chuyến đi chuyển sang "Settled", hệ thống tính toán và sinh danh sách giao dịch bù trừ (giảm thiểu số lượt chuyển khoản).
 - **AC 2.2.2:** Leader tick chọn "Đã hoàn tất" cho các khoản chuyển tiền. Khi tick hết, chuyến đi chuyển sang trạng thái "Closed".
+
+---
+
+### Epic 3: Kế hoạch Chi phí Dự trù *(Phase 2)*
+
+**US 3.0: Quản lý Danh mục Chi tiêu (Expense Categories)**
+- *Là một* Leader, *tôi muốn* quản lý danh mục chi tiêu riêng cho chuyến đi để phân loại khoản dự trù linh hoạt hơn.
+- **AC 3.0.1:** Hệ thống seed sẵn 5 danh mục mặc định: Đi lại (🚗), Lưu trú (🏨), Ăn uống (🍽️), Vui chơi (🎮), Khác (📌).
+- **AC 3.0.2:** Leader có thể tạo danh mục tùy chỉnh với Tên, Màu hiển thị, Icon (emoji hoặc icon code, tùy chọn).
+- **AC 3.0.3:** Leader có thể sửa tên/màu/icon của danh mục tùy chỉnh. Danh mục mặc định (system-seeded) được đập label nhưng không xóa được.
+- **AC 3.0.4:** Khi xóa danh mục tùy chỉnh, nếu đã có planned expense liên kết, hệ thống báo lỗi và từ chối xóa (không cascade delete).
+- **AC 3.0.5:** Danh sách danh mục lấy từ API `GET /api/v1/expense-categories` và được dùng làm dropdown khi tạo/sửa planned expense.
+
+**US 3.1: Tạo khoản chi dự trù**
+- *Là một* Leader/Member, *tôi muốn* ghi nhận một khoản chi dự kiến trước chuyến đi để cả nhóm nắm được ngân sách.
+- **AC 3.1.1:** Form tạo gồm: Tên (bắt buộc), Danh mục (dropdown, bắt buộc), Số tiền ước tính (> 0, bắt buộc), Nguồn thanh toán (Quỹ chung / Cá nhân, bắt buộc), Người phụ trách (dropdown thành viên, tùy chọn), Ghi chú & Link đặt hàng (tùy chọn).
+- **AC 3.1.2:** Validate phía client và server. Báo lỗi rõ ràng nếu thiếu trường bắt buộc.
+- **AC 3.1.3:** Sau khi tạo, khoản dự trù hiển thị ngay trong danh sách với status = `PENDING`.
+
+**US 3.2: Xem tổng quan ngân sách (Budget Summary)**
+- *Là một* Leader/Member, *tôi muốn* xem bức tranh tổng quan về chi phí dự kiến so với quỹ hiện có.
+- **AC 3.2.1:** Hiển thị tổng dự trù (`SUM(estimated_amount)`) và tổng quỹ hiện có.
+- **AC 3.2.2:** Hiển thị breakdown theo danh mục (Đi lại, Lưu trú, Ăn uống, ...).
+- **AC 3.2.3:** Nếu tổng dự trù > tổng quỹ, hiển thị cảnh báo màu đỏ với số tiền thiếu hụt.
+- **AC 3.2.4:** Riêng các khoản `payment_source = FUND` được tổng hợp để so sánh với số dư quỹ thực tế.
+
+**US 3.3: Cập nhật trạng thái khoản dự trù**
+- *Là một* người phụ trách / Leader, *tôi muốn* cập nhật trạng thái khoản dự trù khi có tiến triển.
+- **AC 3.3.1:** Cho phép chuyển status: `PENDING` → `BOOKED` → `CONFIRMED` hoặc `CANCELLED`.
+- **AC 3.3.2:** Chỉ người tạo hoặc Leader mới được sửa.
+- **AC 3.3.3:** Khoản đã `CONFIRMED` hoặc `CANCELLED` không thể xóa.
+
+**US 3.4: Confirm khoản dự trù thành Chi tiêu thực tế**
+- *Là một* Leader/người phụ trách, *tôi muốn* "xác nhận" một khoản dự trù đã thực hiện để ghi nhận vào sổ chi tiêu thực tế.
+- **AC 3.4.1:** Form confirm cho phép nhập số tiền thực tế (có thể khác số dự trù).
+- **AC 3.4.2:** Hệ thống tự động tạo bản ghi `expense` với split EQUAL mặc định (Leader có thể chọn lại sau).
+- **AC 3.4.3:** Sau khi confirm, `PlannedExpense.status = CONFIRMED`, `actual_expense_id` được gán. Khoản dự trù hiển thị badge "Đã thực hiện" với link tới actual expense.
+
+---
+
+### Epic 4: Danh sách Việc cần làm (Checklist) *(Phase 2)*
+
+**US 4.1: Quản lý Checklist**
+- *Là một* Leader/Member, *tôi muốn* tạo và theo dõi danh sách công việc cần chuẩn bị.
+- **AC 4.1.1:** Leader có thể tạo/sửa/xóa bất kỳ item. Member chỉ tạo item mới và cập nhật status item của mình.
+- **AC 4.1.2:** Mỗi item gồm: Tên (bắt buộc), Mô tả (tùy chọn), Người phụ trách, Hạn (Due date), Trạng thái (`TODO` / `IN_PROGRESS` / `DONE`).
+- **AC 4.1.3:** Tick/untick status có thể thao tác trực tiếp trên danh sách (không cần mở form).
+- **AC 4.1.4:** Progress bar tổng tiến độ cập nhật realtime khi tick item.
+
+**US 4.2: Lọc Checklist**
+- *Là một* thành viên, *tôi muốn* lọc để chỉ xem các việc được giao cho tôi.
+- **AC 4.2.1:** Có nút filter "Việc của tôi" / "Tất cả".
+- **AC 4.2.2:** Badge số lượng item `TODO` hiển thị trên tab để nhắc nhở.
+
+---
+
+### Epic 5: Lịch trình Chuyến đi (Itinerary) *(Phase 2)*
+
+**US 5.1: Tạo Lịch trình theo Ngày**
+- *Là một* Leader, *tôi muốn* lên lịch trình cho từng ngày của chuyến đi.
+- **AC 5.1.1:** Leader tạo các "ngày" (Day 1, Day 2, ...) với tên/chủ đề tùy chỉnh và ngày cụ thể.
+- **AC 5.1.2:** Trong mỗi ngày, Leader thêm các hoạt động gồm: Tên, Giờ bắt đầu, Giờ kết thúc (tùy chọn), Địa điểm, Link Google Maps (tùy chọn), Ghi chú.
+- **AC 5.1.3:** Các hoạt động tự động sắp xếp theo giờ bắt đầu trong cùng một ngày.
+
+**US 5.2: Xem Lịch trình**
+- *Là một* thành viên, *tôi muốn* xem toàn bộ lịch trình để biết kế hoạch chi tiết.
+- **AC 5.2.1:** Giao diện dạng Timeline dọc, chuyển đổi giữa các ngày bằng tab.
+- **AC 5.2.2:** Nhấn vào địa điểm mở link Google Maps trong tab mới.
+- **AC 5.2.3:** Responsive tốt trên Mobile (người dùng hay xem lịch trình khi đang đi thực tế).
 
 ---
 
@@ -147,6 +250,63 @@
 - `to_user_id` (FK -> users)
 - `amount` (DECIMAL 12,2, Not Null)
 - `is_settled` (BOOLEAN, Default False)
+
+### 4.3. Planning Entities *(Phase 2)*
+
+**8. planned_expense_categories**
+- `id` (BIGINT, PK)
+- `name` (VARCHAR 100, Not Null) — *Tên danh mục (VD: "Đi lại", "Lưu trú")*
+- `icon` (VARCHAR 50, Nullable) — *Emoji hoặc icon code (VD: "🚗", "car")*
+- `color` (VARCHAR 20, Nullable) — *Mã màu hex (VD: "#6366F1")*
+- `is_default` (BOOLEAN, Default False) — *True = danh mục hệ thống, không xóa được*
+- `created_at` (TIMESTAMP)
+
+*Seed data mặc định:* `Đi lại (🚗)`, `Lưu trú (🏨)`, `Ăn uống (🍽️)`, `Vui chơi (🎮)`, `Khác (📌)` với `is_default = true`.
+
+**9. planned_expenses**
+- `id` (BIGINT, PK)
+- `trip_id` (FK → trips, Not Null)
+- `title` (VARCHAR 255, Not Null)
+- `category_id` (FK → planned_expense_categories, Not Null) — *Thay thế Enum cũ*
+- `estimated_amount` (DECIMAL 12,2, Not Null)
+- `payment_source` (VARCHAR, Not Null) — *Enum: FUND, PERSONAL*
+- `responsible_person_id` (FK → users, Nullable) — *Người phụ trách đặt/mua*
+- `status` (VARCHAR, Not Null, Default 'PENDING') — *Enum: PENDING, BOOKED, CONFIRMED, CANCELLED*
+- `actual_expense_id` (FK → expenses, Nullable) — *Link tới chi tiêu thực tế sau khi Confirm*
+- `notes` (TEXT, Nullable)
+- `booking_link` (VARCHAR 500, Nullable)
+- `created_by` (FK → users, Not Null)
+- `created_at` (TIMESTAMP)
+
+**9. trip_checklist_items**
+- `id` (BIGINT, PK)
+- `trip_id` (FK → trips, Not Null)
+- `title` (VARCHAR 255, Not Null)
+- `description` (TEXT, Nullable)
+- `assignee_id` (FK → users, Nullable)
+- `status` (VARCHAR, Not Null, Default 'TODO') — *Enum: TODO, IN_PROGRESS, DONE*
+- `due_date` (DATE, Nullable)
+- `sort_order` (INT, Default 0)
+- `created_by` (FK → users, Not Null)
+- `created_at` (TIMESTAMP)
+
+**10. trip_itinerary_days**
+- `id` (BIGINT, PK)
+- `trip_id` (FK → trips, Not Null)
+- `day_number` (INT, Not Null) — *Thứ tự ngày (1, 2, 3, ...)*
+- `date` (DATE, Nullable) — *Ngày cụ thể (tùy chọn)*
+- `title` (VARCHAR 255, Nullable) — *Tên/chủ đề của ngày*
+
+**11. trip_itinerary_activities**
+- `id` (BIGINT, PK)
+- `day_id` (FK → trip_itinerary_days, Not Null)
+- `title` (VARCHAR 255, Not Null)
+- `start_time` (TIME, Nullable)
+- `end_time` (TIME, Nullable)
+- `location` (VARCHAR 255, Nullable)
+- `maps_link` (VARCHAR 500, Nullable)
+- `notes` (TEXT, Nullable)
+- `sort_order` (INT, Default 0) — *Sắp xếp theo giờ trong ngày*
 
 ---
 
