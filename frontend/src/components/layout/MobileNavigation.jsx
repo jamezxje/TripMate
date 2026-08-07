@@ -10,6 +10,7 @@ export const MobileNavigation = () => {
     { path: '/', label: t('nav.trips', 'Chuyến đi'), icon: Compass },
     { path: '/funds', label: t('nav.fund', 'Quỹ nhóm'), icon: Wallet },
     { path: '/expenses', label: t('nav.expenses', 'Chi tiêu'), icon: Receipt },
+    { path: '/planning', label: t('nav.planning', 'Kế hoạch'), icon: Compass },
     { path: '/settlement', label: t('nav.settlement', 'Quyết toán'), icon: Calculator },
   ];
 

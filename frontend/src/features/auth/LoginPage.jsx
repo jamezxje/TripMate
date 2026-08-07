@@ -25,7 +25,6 @@ export const LoginPage = () => {
       ...formData,
       [e.target.name]: e.target.value,
     });
-    if (errorMessage) setErrorMessage('');
   };
 
   const toggleLanguage = () => {

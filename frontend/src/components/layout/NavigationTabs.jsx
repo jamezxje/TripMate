@@ -10,6 +10,7 @@ export const NavigationTabs = () => {
     { path: '/', label: t('nav.trips', 'Chuyến đi'), icon: Compass },
     { path: '/funds', label: t('nav.fund', 'Quỹ nhóm'), icon: Wallet },
     { path: '/expenses', label: t('nav.expenses', 'Chi tiêu'), icon: Receipt },
+    { path: '/planning', label: t('nav.planning', 'Kế hoạch'), icon: Compass }, // or Calendar, maybe ListTodo
     { path: '/settlement', label: t('nav.settlement', 'Quyết toán'), icon: Calculator },
   ];
 

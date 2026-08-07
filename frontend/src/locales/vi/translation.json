@@ -7,7 +7,8 @@
     "trips": "Chuyến đi",
     "fund": "Quỹ chung",
     "expenses": "Chi tiêu",
-    "settlement": "Quyết toán"
+    "settlement": "Quyết toán",
+    "planning": "Kế hoạch"
   },
   "common": {
     "save": "Lưu",
@@ -58,9 +59,32 @@
     "register_now": "Đăng ký ngay",
     "login_now": "Đăng nhập ngay",
     "login_failed": "Đăng nhập thất bại. Vui lòng kiểm tra lại email và mật khẩu.",
-    "register_failed": "Đăng ký thất bại. Vui lòng thử lại sau.",
+    "register_failed": "Đăng ký thất bại. Email có thể đã được sử dụng.",
     "register_success": "Đăng ký tài khoản thành công! Đang chuyển hướng...",
     "password_min_length": "Mật khẩu phải có tối thiểu 6 ký tự.",
-    "password_mismatch": "Mật khẩu xác nhận không khớp."
+    "password_mismatch": "Mật khẩu xác nhận không khớp.",
+    "logout": "Đăng xuất"
+  },
+  "planning": {
+    "title": "Kế hoạch & Dự trù",
+    "budget_overview": "Tổng quan Ngân sách",
+    "total_estimated": "Tổng dự trù",
+    "categories": "Danh mục",
+    "manage_categories": "Quản lý Danh mục",
+    "add_category": "Thêm danh mục",
+    "category_name": "Tên danh mục",
+    "add_expense": "Thêm dự trù",
+    "expense_title": "Tên khoản dự trù",
+    "status": {
+      "PENDING": "Chưa đặt",
+      "BOOKED": "Đã đặt",
+      "CONFIRMED": "Đã xác nhận",
+      "CANCELLED": "Đã hủy"
+    },
+    "payment_source": {
+      "FUND": "Quỹ chung",
+      "PERSONAL": "Cá nhân tự trả"
+    },
+    "warning_over_budget": "Dự trù vượt quá quỹ chung hiện có!"
   }
 }

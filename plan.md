@@ -253,13 +253,13 @@ Tài liệu này chi tiết hóa danh sách tác vụ tái thiết kế giao di�
     - `created_by` (FK → users), `created_at` (TIMESTAMP)
   - Cập nhật `schema.sql` với DDL mới cho cả 2 bảng.
 
-- [ ] **Task 9.2: Backend — JPA Entities & Repositories**
+- [x] **Task 9.2: Backend — JPA Entities & Repositories**
   - Tạo `PlannedExpenseCategory.java` Entity (mapping bảng `planned_expense_categories`).
   - Tạo `PlannedExpense.java` Entity với `@ManyToOne` tới `PlannedExpenseCategory`.
   - Tạo Enum: `PaymentSource` (`FUND`, `PERSONAL`), `PlannedExpenseStatus` (`PENDING`, `BOOKED`, `CONFIRMED`, `CANCELLED`).
   - Tạo `PlannedExpenseCategoryRepository` và `PlannedExpenseRepository` (Spring Data JPA).
 
-- [ ] **Task 9.3: Backend — DTOs (Categories & Planned Expenses)**
+- [x] **Task 9.3: Backend — DTOs (Categories & Planned Expenses)**
   - **Category DTOs:**
     - `CreateCategoryRequest` (name bắt buộc, icon & color tùy chọn).
     - `UpdateCategoryRequest`.
@@ -271,7 +271,7 @@ Tài liệu này chi tiết hóa danh sách tác vụ tái thiết kế giao di�
     - `ConfirmPlannedExpenseRequest` (actualAmount).
     - `BudgetSummaryResponse` (tổng dự trù, breakdown theo category kèm name/icon/color, so sánh vs quỹ hiện có).
 
-- [ ] **Task 9.4: Backend — Service & Business Logic**
+- [x] **Task 9.4: Backend — Service & Business Logic**
   - Viết `ExpenseCategoryService`:
     - `getAll()`: Trả về toàn bộ danh mục (mặc định + tùy chỉnh).
     - `create(request)`: Tạo danh mục mới (không có `is_default`).
@@ -286,7 +286,7 @@ Tài liệu này chi tiết hóa danh sách tác vụ tái thiết kế giao di�
       - Cập nhật `status = CONFIRMED` và gán `actual_expense_id`.
     - Cảnh báo khi tổng `estimated_amount` của các khoản `FUND` vượt số dư quỹ hiện tại.
 
-- [ ] **Task 9.5: Backend — REST Controllers**
+- [x] **Task 9.5: Backend — REST Controllers**
   - Viết `ExpenseCategoryController`:
     - `GET /api/v1/expense-categories` — Lấy toàn bộ danh mục (public trong trip).
     - `POST /api/v1/expense-categories` — Tạo danh mục tùy chỉnh (chỉ Leader).
@@ -300,13 +300,13 @@ Tài liệu này chi tiết hóa danh sách tác vụ tái thiết kế giao di�
     - `POST /api/v1/trips/{tripId}/planned-expenses/{id}/confirm` — Confirm → tạo actual expense.
     - `GET /api/v1/trips/{tripId}/budget-summary` — Lấy tổng quan ngân sách.
 
-- [ ] **Task 9.6: Frontend — API Client & Store**
+- [x] **Task 9.6: Frontend — API Client & Store**
   - Tạo `src/features/planning/planningApi.js` với các hàm:
     - `categoryApi`: getAll, create, update, delete.
     - `plannedExpenseApi`: getAll, create, update, delete, confirm, getBudgetSummary.
   - Tạo `usePlanningStore` (Zustand): quản lý state danh sách categories và planned expenses.
 
-- [ ] **Task 9.7: Frontend — UI Budget Planning**
+- [x] **Task 9.7: Frontend — UI Budget Planning**
   - Tạo tab/trang mới "Kế hoạch" trong navigation (thêm vào cạnh "Chi tiêu", "Quyết toán").
   - Tạo component `CategoryManager` (chỉ hiển thị với Leader):
     - Hiển thị danh sách danh mục (icon + màu + tên), phân biệt rõ loại mặc định vs tùy chỉnh.

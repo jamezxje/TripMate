@@ -8,6 +8,7 @@ import { ExpenseList } from '../features/expenses/ExpenseList';
 import { SettlementDashboard } from '../features/settlement/SettlementDashboard';
 import { LoginPage } from '../features/auth/LoginPage';
 import { RegisterPage } from '../features/auth/RegisterPage';
+import { PlanningDashboard } from '../features/planning/PlanningDashboard';
 
 export const AppRoutes = () => {
   return (
@@ -23,6 +24,7 @@ export const AppRoutes = () => {
             <Route index element={<TripList />} />
             <Route path="funds" element={<FundSummaryView />} />
             <Route path="expenses" element={<ExpenseList />} />
+            <Route path="planning" element={<PlanningDashboard />} />
             <Route path="settlement" element={<SettlementDashboard />} />
           </Route>
         </Route>
