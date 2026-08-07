@@ -2,32 +2,35 @@ import React, { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useTripStore } from '../../store/useTripStore';
 import { usePlanningStore } from '../../store/usePlanningStore';
-import { plannedExpenseApi, categoryApi, checklistApi } from './planningApi';
+import { plannedExpenseApi, categoryApi, checklistApi, itineraryApi } from './planningApi';
 import { BudgetOverviewCard } from './BudgetOverviewCard';
 import { CategoryManager } from './CategoryManager';
 import { PlannedExpenseList } from './PlannedExpenseList';
 import { ChecklistPanel } from './ChecklistPanel';
+import { ItineraryPanel } from './ItineraryPanel';
 import { AnimatedPage } from '../../components/layout/AnimatedPage';
 
 export const PlanningDashboard = () => {
   const { t } = useTranslation();
   const { currentTrip } = useTripStore();
-  const { setCategories, setBudgetSummary, setPlannedExpenses, setChecklistSummary, setIsLoading } = usePlanningStore();
+  const { setCategories, setBudgetSummary, setPlannedExpenses, setChecklistSummary, setItineraryDays, setIsLoading } = usePlanningStore();
   
   const loadData = async () => {
     if (!currentTrip?.id) return;
     setIsLoading(true);
     try {
-      const [catRes, budgetRes, expenseRes, checklistRes] = await Promise.all([
+      const [catRes, budgetRes, expenseRes, checklistRes, itineraryRes] = await Promise.all([
         categoryApi.getAll(),
         plannedExpenseApi.getBudgetSummary(currentTrip.id),
         plannedExpenseApi.getAll(currentTrip.id),
-        checklistApi.getSummary(currentTrip.id)
+        checklistApi.getSummary(currentTrip.id),
+        itineraryApi.getItinerary(currentTrip.id)
       ]);
       setCategories(catRes?.data || []);
       setBudgetSummary(budgetRes?.data || null);
       setPlannedExpenses(expenseRes?.data || []);
       setChecklistSummary(checklistRes?.data || null);
+      setItineraryDays(itineraryRes?.data || []);
     } catch (error) {
       console.error("Failed to load planning data", error);
     } finally {
@@ -57,6 +60,9 @@ export const PlanningDashboard = () => {
         </div>
       </div>
       
+      {/* Itinerary Timeline Panel */}
+      <ItineraryPanel onRefresh={loadData} />
+
       {/* Checklist Panel */}
       <ChecklistPanel onRefresh={loadData} />
 

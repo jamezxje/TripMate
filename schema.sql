@@ -208,6 +208,37 @@ CREATE INDEX idx_checklist_trip_id ON trip_checklist_items(trip_id);
 CREATE INDEX idx_checklist_status ON trip_checklist_items(status);
 CREATE INDEX idx_checklist_assignee ON trip_checklist_items(assignee_id);
 
+-- 11. Table: trip_itinerary_days
+CREATE TABLE trip_itinerary_days (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    trip_id BIGINT NOT NULL,
+    day_number INT NOT NULL,
+    date DATE NULL,
+    title VARCHAR(255) NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT uq_itinerary_day UNIQUE (trip_id, day_number),
+    CONSTRAINT fk_itinerary_days_trip FOREIGN KEY (trip_id) REFERENCES trips(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE INDEX idx_itinerary_days_trip_id ON trip_itinerary_days(trip_id);
+
+-- 12. Table: trip_itinerary_activities
+CREATE TABLE trip_itinerary_activities (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    day_id BIGINT NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    start_time TIME NULL,
+    end_time TIME NULL,
+    location VARCHAR(255) NULL,
+    maps_link VARCHAR(500) NULL,
+    notes TEXT NULL,
+    sort_order INT DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_itinerary_activities_day FOREIGN KEY (day_id) REFERENCES trip_itinerary_days(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE INDEX idx_itinerary_activities_day_id ON trip_itinerary_activities(day_id);
+
 -- ============================================================
 
 -- Initial Sample Seed Users
@@ -216,4 +247,5 @@ INSERT INTO users (id, email, full_name, password_hash) VALUES
 (2, 'btt@example.com', 'Trần Thị B', 'hash123'),
 (3, 'lvc@example.com', 'Lê Văn C', 'hash123')
 ON DUPLICATE KEY UPDATE email=VALUES(email);
+
 

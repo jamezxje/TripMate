@@ -114,7 +114,47 @@
       "marked_todo": "Đã mở lại công việc",
       "confirm_delete": "Bạn có chắc chắn muốn xóa công việc này?",
       "delete_success": "Đã xóa công việc"
+    },
+    "itinerary": {
+      "title": "Lịch trình Chuyến đi",
+      "subtitle": "Sắp xếp thời gian, địa điểm và hoạt động cho từng ngày",
+      "add_day": "Thêm ngày mới",
+      "day": "Ngày",
+      "empty_days": "Chưa có ngày nào trong lịch trình",
+      "empty_days_hint": "Hãy bấm \"Thêm ngày mới\" để bắt đầu lên lịch trình cho chuyến đi.",
+      "add_activity": "Thêm hoạt động",
+      "empty_activities": "Chưa có hoạt động nào trong ngày này. Bấm \"Thêm hoạt động\" để lên lịch.",
+      "add_day_title": "Thêm ngày mới",
+      "edit_day_title": "Sửa ngày lịch trình",
+      "day_subtitle": "Thiết lập danh mục ngày trong chuyến đi",
+      "day_number": "Ngày thứ",
+      "day_number_invalid": "Số thứ tự ngày không hợp lệ",
+      "date": "Ngày cụ thể",
+      "day_name": "Chủ đề / Tên ngày",
+      "day_name_placeholder": "Ví dụ: Khám phá Phố Cổ, Vui chơi VinWonders...",
+      "create_day_success": "Thêm ngày lịch trình thành công",
+      "update_day_success": "Cập nhật ngày lịch trình thành công",
+      "confirm_delete_day": "Bạn có chắc chắn muốn xóa ngày này và toàn bộ hoạt động trong ngày?",
+      "delete_day_success": "Đã xóa ngày lịch trình",
+      "add_activity_title": "Thêm hoạt động mới",
+      "edit_activity_title": "Sửa hoạt động",
+      "activity_subtitle": "Sắp xếp lịch trình chi tiết theo giờ",
+      "activity_title": "Tên hoạt động",
+      "activity_title_required": "Vui lòng nhập tên hoạt động",
+      "activity_title_placeholder": "Ví dụ: Ăn sáng Phở Thìn, Tham quan Lăng Bác...",
+      "start_time": "Giờ bắt đầu",
+      "end_time": "Giờ kết thúc",
+      "location": "Địa điểm",
+      "location_placeholder": "Ví dụ: 13 Lò Đúc, Hai Bà Trưng...",
+      "maps_link": "Liên kết Google Maps",
+      "notes": "Ghi chú",
+      "notes_placeholder": "Lưu ý cần nhớ...",
+      "create_activity_success": "Thêm hoạt động thành công",
+      "update_activity_success": "Cập nhật hoạt động thành công",
+      "confirm_delete_activity": "Bạn có chắc chắn muốn xóa hoạt động này?",
+      "delete_activity_success": "Đã xóa hoạt động"
     }
   }
 }
+
 

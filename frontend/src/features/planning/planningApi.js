@@ -31,3 +31,14 @@ export const checklistApi = {
   delete: (tripId, itemId) => api.delete(`/trips/${tripId}/checklist/${itemId}`),
 };
 
+export const itineraryApi = {
+  getItinerary: (tripId) => api.get(`/trips/${tripId}/itinerary`),
+  createDay: (tripId, data) => api.post(`/trips/${tripId}/itinerary/days`, data),
+  updateDay: (tripId, dayId, data) => api.put(`/trips/${tripId}/itinerary/days/${dayId}`, data),
+  deleteDay: (tripId, dayId) => api.delete(`/trips/${tripId}/itinerary/days/${dayId}`),
+  createActivity: (tripId, dayId, data) => api.post(`/trips/${tripId}/itinerary/days/${dayId}/activities`, data),
+  updateActivity: (tripId, activityId, data) => api.put(`/trips/${tripId}/itinerary/activities/${activityId}`, data),
+  deleteActivity: (tripId, activityId) => api.delete(`/trips/${tripId}/itinerary/activities/${activityId}`),
+};
+
+

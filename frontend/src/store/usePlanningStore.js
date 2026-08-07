@@ -6,6 +6,7 @@ export const usePlanningStore = create((set) => ({
   budgetSummary: null,
   checklistSummary: null,
   checklistItems: [],
+  itineraryDays: [],
   isLoading: false,
   error: null,
 
@@ -18,6 +19,7 @@ export const usePlanningStore = create((set) => ({
     error: null
   }),
   setChecklistItems: (checklistItems) => set({ checklistItems }),
+  setItineraryDays: (itineraryDays) => set({ itineraryDays, error: null }),
   
   addChecklistItem: (item) => set((state) => ({
     checklistItems: [item, ...state.checklistItems]
@@ -34,4 +36,5 @@ export const usePlanningStore = create((set) => ({
   setIsLoading: (isLoading) => set({ isLoading }),
   setError: (error) => set({ error, isLoading: false }),
 }));
+
 

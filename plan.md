@@ -356,11 +356,11 @@ Tài liệu này chi tiết hóa danh sách tác vụ tái thiết kế giao di�
 
 ### Epic B — Lịch trình Chuyến đi (Itinerary) *(P2 - Nice to have)*
 
-- [ ] **Task 9.11: Database Schema — Bảng `trip_itinerary_days` & `trip_itinerary_activities`**
+- [x] **Task 9.11: Database Schema — Bảng `trip_itinerary_days` & `trip_itinerary_activities`**
   - Bảng `trip_itinerary_days`: `id`, `trip_id`, `day_number`, `date`, `title`.
   - Bảng `trip_itinerary_activities`: `id`, `day_id` (FK), `title`, `start_time`, `end_time` (nullable), `location`, `maps_link` (nullable), `notes`, `sort_order`.
 
-- [ ] **Task 9.12: Backend — Itinerary API**
+- [x] **Task 9.12: Backend — Itinerary API**
   - Tạo Entities, Repositories, DTOs cho Day và Activity.
   - Viết `ItineraryService`: CRUD cho ngày và hoạt động trong ngày.
   - Viết `ItineraryController`:
@@ -368,7 +368,7 @@ Tài liệu này chi tiết hóa danh sách tác vụ tái thiết kế giao di�
     - `POST /api/v1/trips/{tripId}/itinerary/{dayId}/activities` — Thêm hoạt động vào ngày.
     - `PUT/DELETE` cho từng activity.
 
-- [ ] **Task 9.13: Frontend — UI Itinerary Timeline**
+- [x] **Task 9.13: Frontend — UI Itinerary Timeline**
   - Tạo `ItineraryView` trong tab "Kế hoạch":
     - Tab chọn ngày (Day 1, Day 2, ...).
     - Timeline dọc hiển thị các hoạt động theo giờ.
