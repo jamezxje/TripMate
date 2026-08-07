@@ -1,7 +1,7 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Compass, Wallet, Receipt, Calculator } from 'lucide-react';
+import { Compass, Calendar, Wallet, Receipt, Calculator } from 'lucide-react';
 import { useTripStore } from '../../store/useTripStore';
 
 export const MobileNavigation = () => {
@@ -13,10 +13,10 @@ export const MobileNavigation = () => {
   }
 
   const navItems = [
-    { path: '/', label: t('nav.trips', 'Tổng quan'), icon: Compass },
-    { path: '/funds', label: t('nav.fund', 'Quỹ nhóm'), icon: Wallet },
+    { path: '/', label: t('nav.trips', 'Chuyến đi'), icon: Compass },
+    { path: '/planning', label: t('nav.planning', 'Kế hoạch'), icon: Calendar },
+    { path: '/funds', label: t('nav.fund', 'Quỹ chung'), icon: Wallet },
     { path: '/expenses', label: t('nav.expenses', 'Chi tiêu'), icon: Receipt },
-    { path: '/planning', label: t('nav.planning', 'Kế hoạch'), icon: Compass },
     { path: '/settlement', label: t('nav.settlement', 'Quyết toán'), icon: Calculator },
   ];
 
