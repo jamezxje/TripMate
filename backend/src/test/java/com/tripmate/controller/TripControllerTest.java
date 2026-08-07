@@ -174,7 +174,7 @@ class TripControllerTest {
     @Test
     @DisplayName("GET /api/v1/trips/{tripId} - Xem chi tiết chuyến đi thành công (HTTP 200)")
     void getTripDetail_Success() throws Exception {
-        when(tripService.getTripDetail(100L)).thenReturn(mockTripResponse);
+        when(tripService.getTripDetail(eq(100L), any())).thenReturn(mockTripResponse);
 
         mockMvc.perform(get("/api/v1/trips/100"))
                 .andExpect(status().isOk())
@@ -187,7 +187,7 @@ class TripControllerTest {
     @Test
     @DisplayName("GET /api/v1/trips/{tripId} - Không tìm thấy chuyến đi -> Lỗi 404 Not Found")
     void getTripDetail_NotFound() throws Exception {
-        when(tripService.getTripDetail(999L))
+        when(tripService.getTripDetail(eq(999L), any()))
                 .thenThrow(new ResourceNotFoundException("Không tìm thấy chuyến đi với ID: 999"));
 
         mockMvc.perform(get("/api/v1/trips/999"))

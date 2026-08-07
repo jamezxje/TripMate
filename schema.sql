@@ -185,6 +185,29 @@ CREATE INDEX idx_planned_expenses_category_id ON planned_expenses(category_id);
 CREATE INDEX idx_planned_expenses_status ON planned_expenses(status);
 CREATE INDEX idx_planned_expenses_created_by ON planned_expenses(created_by);
 
+-- 10. Table: trip_checklist_items
+CREATE TABLE trip_checklist_items (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    trip_id BIGINT NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    description TEXT NULL,
+    assignee_id BIGINT NULL COMMENT 'Người được phân công',
+    status VARCHAR(20) NOT NULL DEFAULT 'TODO' COMMENT 'TODO | IN_PROGRESS | DONE',
+    due_date DATE NULL,
+    sort_order INT DEFAULT 0,
+    created_by BIGINT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT chk_checklist_status CHECK (status IN ('TODO', 'IN_PROGRESS', 'DONE')),
+    CONSTRAINT fk_checklist_trip FOREIGN KEY (trip_id) REFERENCES trips(id) ON DELETE CASCADE,
+    CONSTRAINT fk_checklist_assignee FOREIGN KEY (assignee_id) REFERENCES users(id) ON DELETE SET NULL,
+    CONSTRAINT fk_checklist_created_by FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Indexes for trip_checklist_items
+CREATE INDEX idx_checklist_trip_id ON trip_checklist_items(trip_id);
+CREATE INDEX idx_checklist_status ON trip_checklist_items(status);
+CREATE INDEX idx_checklist_assignee ON trip_checklist_items(assignee_id);
+
 -- ============================================================
 
 -- Initial Sample Seed Users
@@ -193,3 +216,4 @@ INSERT INTO users (id, email, full_name, password_hash) VALUES
 (2, 'btt@example.com', 'Trần Thị B', 'hash123'),
 (3, 'lvc@example.com', 'Lê Văn C', 'hash123')
 ON DUPLICATE KEY UPDATE email=VALUES(email);
+

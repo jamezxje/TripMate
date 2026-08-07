@@ -328,7 +328,7 @@ Tài liệu này chi tiết hóa danh sách tác vụ tái thiết kế giao di�
 
 ### Epic A — Danh sách Việc cần làm (Checklist) *(P1 - Nên có)*
 
-- [ ] **Task 9.8: Database Schema — Bảng `trip_checklist_items`**
+- [x] **Task 9.8: Database Schema — Bảng `trip_checklist_items`**
   - Tạo bảng `trip_checklist_items` với các cột:
     - `id` (BIGINT, PK), `trip_id` (FK → trips), `title` (VARCHAR, Not Null)
     - `description` (TEXT, Nullable), `assignee_id` (FK → users, Nullable)
@@ -336,7 +336,7 @@ Tài liệu này chi tiết hóa danh sách tác vụ tái thiết kế giao di�
     - `due_date` (DATE, Nullable), `sort_order` (INT, Default 0)
     - `created_by` (FK → users), `created_at` (TIMESTAMP)
 
-- [ ] **Task 9.9: Backend — Checklist API**
+- [x] **Task 9.9: Backend — Checklist API**
   - Tạo `ChecklistItem` Entity, `ChecklistItemRepository`.
   - Tạo DTOs: `CreateChecklistItemRequest`, `UpdateChecklistItemRequest`, `ChecklistItemResponse`.
   - Viết `ChecklistService`: CRUD + tính % tiến độ (done/total).
@@ -345,7 +345,7 @@ Tài liệu này chi tiết hóa danh sách tác vụ tái thiết kế giao di�
     - `PUT /api/v1/trips/{tripId}/checklist/{id}` — Cập nhật (status, assignee, ...).
     - `DELETE /api/v1/trips/{tripId}/checklist/{id}` — Xóa item.
 
-- [ ] **Task 9.10: Frontend — UI Checklist**
+- [x] **Task 9.10: Frontend — UI Checklist**
   - Tạo `ChecklistPanel` trong tab "Kế hoạch":
     - Progress bar tổng tiến độ (VD: "5/8 việc đã xong").
     - Danh sách items có thể tick status, xem assignee, due date.

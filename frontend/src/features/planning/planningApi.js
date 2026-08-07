@@ -22,3 +22,12 @@ export const plannedExpenseApi = {
   confirm: (tripId, id, actualAmount) => api.post(`/trips/${tripId}/planned-expenses/${id}/confirm`, { actualAmount }),
   getBudgetSummary: (tripId) => api.get(`/trips/${tripId}/budget-summary`),
 };
+
+export const checklistApi = {
+  getSummary: (tripId) => api.get(`/trips/${tripId}/checklist`),
+  create: (tripId, data) => api.post(`/trips/${tripId}/checklist`, data),
+  update: (tripId, itemId, data) => api.put(`/trips/${tripId}/checklist/${itemId}`, data),
+  updateStatus: (tripId, itemId, status) => api.patch(`/trips/${tripId}/checklist/${itemId}/status?status=${status}`),
+  delete: (tripId, itemId) => api.delete(`/trips/${tripId}/checklist/${itemId}`),
+};
+

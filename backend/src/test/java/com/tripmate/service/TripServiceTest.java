@@ -158,7 +158,7 @@ class TripServiceTest {
         when(tripRepository.findById(100L)).thenReturn(Optional.of(mockTrip));
         when(tripMemberRepository.findByTripId(100L)).thenReturn(List.of(member));
 
-        TripResponse response = tripService.getTripDetail(100L);
+        TripResponse response = tripService.getTripDetail(100L, 1L);
 
         assertNotNull(response);
         assertEquals(100L, response.getId());

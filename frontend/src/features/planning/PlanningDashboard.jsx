@@ -2,29 +2,32 @@ import React, { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useTripStore } from '../../store/useTripStore';
 import { usePlanningStore } from '../../store/usePlanningStore';
-import { plannedExpenseApi, categoryApi } from './planningApi';
+import { plannedExpenseApi, categoryApi, checklistApi } from './planningApi';
 import { BudgetOverviewCard } from './BudgetOverviewCard';
 import { CategoryManager } from './CategoryManager';
 import { PlannedExpenseList } from './PlannedExpenseList';
+import { ChecklistPanel } from './ChecklistPanel';
 import { AnimatedPage } from '../../components/layout/AnimatedPage';
 
 export const PlanningDashboard = () => {
   const { t } = useTranslation();
   const { currentTrip } = useTripStore();
-  const { setCategories, setBudgetSummary, setPlannedExpenses, setIsLoading } = usePlanningStore();
+  const { setCategories, setBudgetSummary, setPlannedExpenses, setChecklistSummary, setIsLoading } = usePlanningStore();
   
   const loadData = async () => {
     if (!currentTrip?.id) return;
     setIsLoading(true);
     try {
-      const [catRes, budgetRes, expenseRes] = await Promise.all([
+      const [catRes, budgetRes, expenseRes, checklistRes] = await Promise.all([
         categoryApi.getAll(),
         plannedExpenseApi.getBudgetSummary(currentTrip.id),
-        plannedExpenseApi.getAll(currentTrip.id)
+        plannedExpenseApi.getAll(currentTrip.id),
+        checklistApi.getSummary(currentTrip.id)
       ]);
       setCategories(catRes?.data || []);
       setBudgetSummary(budgetRes?.data || null);
       setPlannedExpenses(expenseRes?.data || []);
+      setChecklistSummary(checklistRes?.data || null);
     } catch (error) {
       console.error("Failed to load planning data", error);
     } finally {
@@ -54,8 +57,13 @@ export const PlanningDashboard = () => {
         </div>
       </div>
       
+      {/* Checklist Panel */}
+      <ChecklistPanel onRefresh={loadData} />
+
+      {/* Budget Summary Card */}
       <BudgetOverviewCard />
       
+      {/* Planned Expenses & Categories Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
           <PlannedExpenseList onRefresh={loadData} />

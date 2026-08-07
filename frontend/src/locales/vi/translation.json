@@ -85,6 +85,36 @@
       "FUND": "Quỹ chung",
       "PERSONAL": "Cá nhân tự trả"
     },
-    "warning_over_budget": "Dự trù vượt quá quỹ chung hiện có!"
+    "warning_over_budget": "Dự trù vượt quá quỹ chung hiện có!",
+    "checklist": {
+      "title": "Danh sách Việc cần làm",
+      "items_completed": "việc đã xong",
+      "add_button": "Thêm công việc",
+      "progress": "Tiến độ hoàn thành",
+      "my_tasks": "Việc của tôi",
+      "empty_list": "Chưa có công việc nào trong danh sách",
+      "empty_hint": "Bấm nút \"Thêm công việc\" để tạo mới.",
+      "status_todo": "Cần làm",
+      "status_in_progress": "Đang làm",
+      "status_done": "Hoàn thành",
+      "unassigned": "Chưa phân công",
+      "task_name": "Tên công việc",
+      "task_name_placeholder": "Ví dụ: Đặt vé máy bay, Mua kem chống nắng...",
+      "description": "Mô tả chi tiết",
+      "description_placeholder": "Ghi chú cụ thể nếu có...",
+      "assignee": "Người phụ trách",
+      "due_date": "Hạn chót (Due date)",
+      "add_title": "Thêm công việc mới",
+      "edit_title": "Sửa công việc",
+      "subtitle": "Quản lý danh sách chuẩn bị cho chuyến đi",
+      "title_required": "Vui lòng nhập tên công việc",
+      "create_success": "Tạo công việc thành công",
+      "update_success": "Cập nhật công việc thành công",
+      "marked_done": "Đã hoàn thành công việc",
+      "marked_todo": "Đã mở lại công việc",
+      "confirm_delete": "Bạn có chắc chắn muốn xóa công việc này?",
+      "delete_success": "Đã xóa công việc"
+    }
   }
 }
+

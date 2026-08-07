@@ -62,5 +62,57 @@
     "register_success": "Account created successfully! Redirecting...",
     "password_min_length": "Password must be at least 6 characters.",
     "password_mismatch": "Confirm password does not match."
+  },
+  "planning": {
+    "title": "Planning & Budget",
+    "budget_overview": "Budget Overview",
+    "total_estimated": "Total Estimated",
+    "categories": "Categories",
+    "manage_categories": "Manage Categories",
+    "add_category": "Add Category",
+    "category_name": "Category Name",
+    "add_expense": "Add Planned Expense",
+    "expense_title": "Expense Title",
+    "status": {
+      "PENDING": "Pending",
+      "BOOKED": "Booked",
+      "CONFIRMED": "Confirmed",
+      "CANCELLED": "Cancelled"
+    },
+    "payment_source": {
+      "FUND": "Shared Fund",
+      "PERSONAL": "Personal"
+    },
+    "warning_over_budget": "Estimated budget exceeds current fund balance!",
+    "checklist": {
+      "title": "Checklist & Tasks",
+      "items_completed": "tasks completed",
+      "add_button": "Add Task",
+      "progress": "Completion Progress",
+      "my_tasks": "My Tasks",
+      "empty_list": "No tasks found in checklist",
+      "empty_hint": "Click 'Add Task' to create a new one.",
+      "status_todo": "To Do",
+      "status_in_progress": "In Progress",
+      "status_done": "Done",
+      "unassigned": "Unassigned",
+      "task_name": "Task Title",
+      "task_name_placeholder": "E.g. Book flight tickets, Buy sunscreen...",
+      "description": "Description",
+      "description_placeholder": "Specific notes if any...",
+      "assignee": "Assignee",
+      "due_date": "Due Date",
+      "add_title": "Add New Task",
+      "edit_title": "Edit Task",
+      "subtitle": "Manage preparation checklist for your trip",
+      "title_required": "Please enter task title",
+      "create_success": "Task created successfully",
+      "update_success": "Task updated successfully",
+      "marked_done": "Task marked as completed",
+      "marked_todo": "Task reopened",
+      "confirm_delete": "Are you sure you want to delete this task?",
+      "delete_success": "Task deleted successfully"
+    }
   }
 }
+
