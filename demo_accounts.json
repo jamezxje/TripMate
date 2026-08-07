@@ -1,0 +1,31 @@
+{
+  "project": "TripMate",
+  "environment": "Production & Local",
+  "defaultPasswordNote": "Tất cả mật khẩu mặc định là Password123",
+  "accounts": [
+    {
+      "fullName": "Duy",
+      "email": "duy@tripmate.com",
+      "password": "Password123",
+      "role": "MEMBER"
+    },
+    {
+      "fullName": "Hoa",
+      "email": "hoa@tripmate.com",
+      "password": "Password123",
+      "role": "MEMBER"
+    },
+    {
+      "fullName": "Lan Anh",
+      "email": "lananh@tripmate.com",
+      "password": "Password123",
+      "role": "MEMBER"
+    },
+    {
+      "fullName": "Trang",
+      "email": "trang@tripmate.com",
+      "password": "Password123",
+      "role": "MEMBER"
+    }
+  ]
+}
