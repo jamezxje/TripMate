@@ -9,11 +9,12 @@ import { PlannedExpenseList } from './PlannedExpenseList';
 import { ChecklistPanel } from './ChecklistPanel';
 import { ItineraryPanel } from './ItineraryPanel';
 import { AnimatedPage } from '../../components/layout/AnimatedPage';
+import { Skeleton } from '../../components/Skeleton';
 
 export const PlanningDashboard = () => {
   const { t } = useTranslation();
   const { currentTrip } = useTripStore();
-  const { setCategories, setBudgetSummary, setPlannedExpenses, setChecklistSummary, setItineraryDays, setIsLoading } = usePlanningStore();
+  const { setCategories, setBudgetSummary, setPlannedExpenses, setChecklistSummary, setItineraryDays, isLoading, setIsLoading } = usePlanningStore();
   
   const loadData = async () => {
     if (!currentTrip?.id) return;
@@ -45,8 +46,22 @@ export const PlanningDashboard = () => {
   if (!currentTrip) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] text-slate-500">
-        <h2 className="text-xl font-bold text-slate-700 mb-2">Chưa chọn chuyến đi</h2>
-        <p>Vui lòng chọn một chuyến đi từ danh sách để xem phần Lên kế hoạch.</p>
+        <h2 className="text-xl font-bold text-slate-700 dark:text-slate-200 mb-2">Chưa chọn chuyến đi</h2>
+        <p className="text-sm">Vui lòng chọn một chuyến đi từ danh sách để xem phần Lên kế hoạch.</p>
+      </div>
+    );
+  }
+
+  if (isLoading && !currentTrip) {
+    return (
+      <div className="space-y-6">
+        <Skeleton className="h-10 w-64" />
+        <Skeleton className="h-64 w-full rounded-3xl" />
+        <Skeleton className="h-48 w-full rounded-3xl" />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <Skeleton className="lg:col-span-2 h-80 rounded-3xl" />
+          <Skeleton className="h-80 rounded-3xl" />
+        </div>
       </div>
     );
   }

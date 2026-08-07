@@ -379,19 +379,19 @@ Tài liệu này chi tiết hóa danh sách tác vụ tái thiết kế giao di�
 
 ### Kiểm thử & Hoàn thiện Phase 9
 
-- [ ] **Task 9.14: Integration Testing — Budget Planning Flow**
+- [x] **Task 9.14: Integration Testing — Budget Planning Flow**
   - Tạo danh mục tùy chỉnh → Kiểm tra hiển thị đúng icon/màu trong dropdown.
   - Kiểm tra từ chối xóa danh mục đang được dùng và danh mục mặc định.
   - Tạo planned expense → Xem budget summary → Confirm → Kiểm tra actual expense được tạo đúng.
   - Kiểm tra cảnh báo khi dự trù vượt quỹ.
   - Kiểm tra phân quyền: Member không sửa/xóa của người khác; Member không quản lý được danh mục.
 
-- [ ] **Task 9.15: Integration Testing — Checklist & Itinerary**
+- [x] **Task 9.15: Integration Testing — Checklist & Itinerary**
   - Tạo checklist items, tick done → Kiểm tra progress bar cập nhật đúng.
   - Filter "Việc của tôi" hoạt động đúng.
   - Tạo ngày + activity → Hiển thị đúng thứ tự theo giờ.
 
-- [ ] **Task 9.16: UI/UX Polish**
+- [x] **Task 9.16: UI/UX Polish**
   - Đảm bảo tab "Kế hoạch" responsive tốt trên Mobile (Card View thay Table).
   - Skeleton loading cho budget summary và checklist.
   - Empty state đẹp cho từng panel khi chưa có dữ liệu.
