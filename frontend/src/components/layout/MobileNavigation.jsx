@@ -2,12 +2,18 @@ import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Compass, Wallet, Receipt, Calculator } from 'lucide-react';
+import { useTripStore } from '../../store/useTripStore';
 
 export const MobileNavigation = () => {
   const { t } = useTranslation();
+  const { currentTrip } = useTripStore();
+
+  if (!currentTrip) {
+    return null;
+  }
 
   const navItems = [
-    { path: '/', label: t('nav.trips', 'Chuyến đi'), icon: Compass },
+    { path: '/', label: t('nav.trips', 'Tổng quan'), icon: Compass },
     { path: '/funds', label: t('nav.fund', 'Quỹ nhóm'), icon: Wallet },
     { path: '/expenses', label: t('nav.expenses', 'Chi tiêu'), icon: Receipt },
     { path: '/planning', label: t('nav.planning', 'Kế hoạch'), icon: Compass },
@@ -23,6 +29,7 @@ export const MobileNavigation = () => {
             <NavLink
               key={item.path}
               to={item.path}
+              end={item.path === '/'}
               className={({ isActive }) =>
                 `relative flex flex-col items-center justify-center flex-1 h-full py-1 text-[10px] font-bold transition-all duration-300 min-h-[44px] ${
                   isActive ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'
@@ -45,3 +52,4 @@ export const MobileNavigation = () => {
     </nav>
   );
 };
+
