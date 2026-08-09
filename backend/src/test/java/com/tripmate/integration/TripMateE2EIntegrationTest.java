@@ -128,9 +128,11 @@ class TripMateE2EIntegrationTest {
                 .andExpect(jsonPath("$.data.members.length()").value(2));
 
         // Verify Trip detail
-        mockMvc.perform(get("/api/v1/trips/" + tripId))
+        mockMvc.perform(get("/api/v1/trips/" + tripId)
+                        .header("X-User-Id", leaderUser.getId().toString()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.members.length()").value(2));
+
 
         // ==========================================
         // FLOW 2: Advance Fund Contributions
@@ -280,7 +282,8 @@ class TripMateE2EIntegrationTest {
         // FLOW 5: Settlement & Closing Trip
         // ==========================================
         // 1. Get Settlement summary
-        MvcResult settlementResult = mockMvc.perform(get("/api/v1/trips/" + tripId + "/settlements"))
+        MvcResult settlementResult = mockMvc.perform(get("/api/v1/trips/" + tripId + "/settlements")
+                        .header("X-User-Id", leaderUser.getId().toString()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.balances.length()").value(2))
@@ -303,8 +306,10 @@ class TripMateE2EIntegrationTest {
         }
 
         // 3. Verify Trip status changed to CLOSED
-        mockMvc.perform(get("/api/v1/trips/" + tripId))
+        mockMvc.perform(get("/api/v1/trips/" + tripId)
+                        .header("X-User-Id", leaderUser.getId().toString()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.status").value("CLOSED"));
     }
+
 }

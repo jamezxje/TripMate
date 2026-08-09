@@ -86,6 +86,7 @@ class TripServiceTest {
         when(tripRepository.save(any(Trip.class))).thenReturn(mockTrip);
         when(tripMemberRepository.save(any(TripMember.class))).thenReturn(leaderMember);
         when(tripRepository.findById(100L)).thenReturn(Optional.of(mockTrip));
+        when(tripMemberRepository.existsByTripIdAndUserId(100L, 1L)).thenReturn(true);
         when(tripMemberRepository.findByTripId(100L)).thenReturn(List.of(leaderMember));
 
         TripResponse response = tripService.createTrip(request, 1L);
@@ -134,7 +135,7 @@ class TripServiceTest {
 
         when(tripRepository.findByJoinCode("ABC123")).thenReturn(Optional.of(mockTrip));
         when(userRepository.findById(2L)).thenReturn(Optional.of(joinUser));
-        when(tripMemberRepository.existsByTripIdAndUserId(100L, 2L)).thenReturn(false);
+        when(tripMemberRepository.existsByTripIdAndUserId(100L, 2L)).thenReturn(false).thenReturn(true);
         when(tripMemberRepository.save(any(TripMember.class))).thenReturn(newMember);
         when(tripRepository.findById(100L)).thenReturn(Optional.of(mockTrip));
         when(tripMemberRepository.findByTripId(100L)).thenReturn(List.of(newMember));
@@ -156,9 +157,11 @@ class TripServiceTest {
                 .build();
 
         when(tripRepository.findById(100L)).thenReturn(Optional.of(mockTrip));
+        when(tripMemberRepository.existsByTripIdAndUserId(100L, 1L)).thenReturn(true);
         when(tripMemberRepository.findByTripId(100L)).thenReturn(List.of(member));
 
         TripResponse response = tripService.getTripDetail(100L, 1L);
+
 
         assertNotNull(response);
         assertEquals(100L, response.getId());

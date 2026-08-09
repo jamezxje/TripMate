@@ -120,3 +120,14 @@ src/
 - **Backend (Spring MessageSource):**
   - Cấu hình `ResourceBundleMessageSource` và các file `messages_vi.properties`, `messages_en.properties` trong `src/main/resources/`.
   - Xử lý ngôn ngữ phản hồi thông báo lỗi dựa theo Header `Accept-Language` (mặc định fallback về `vi`).
+
+---
+
+## 5. Quy trình phát triển & Tự kiểm thử (Workflow & Self-Testing Rules)
+
+### 5.1. Git Branching
+- **BẮT BUỘC:** Mỗi khi nhận yêu cầu sửa đổi (bug fix) hoặc phát triển tính năng mới (new feature), AI BẮT BUỘC phải tạo và checkout sang nhánh Git mới (`git checkout -b feature/<tên-tính-năng>` hoặc `git checkout -b fix/<tên-lỗi>`) trước khi sửa bất kỳ file code nào.
+
+### 5.2. Tự kiểm thử với Chrome DevTools MCP
+- **BẮT BUỘC:** Sau khi hoàn thành việc phát triển hoặc sửa code, AI BẮT BUỘC phải sử dụng công cụ `chrome-devtools-mcp` để tự kiểm thử lại phần việc vừa làm trên trình duyệt.
+- AI cần kiểm tra giao diện, luồng thao tác và đảm bảo không phát sinh lỗi Console log hay Network error trước khi bàn giao cho người dùng.
