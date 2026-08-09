@@ -7,10 +7,10 @@ spring:
     name: tripmate-backend
 
   datasource:
-    url: ${DB_URL:jdbc:mysql://localhost:3306/trip_mate_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true&createDatabaseIfNotExist=true}
+    url: ${DB_URL:jdbc:h2:mem:tripmatedb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;MODE=MySQL}
     username: ${DB_USERNAME:sa}
     password: ${DB_PASSWORD:sa}
-    driver-class-name: com.mysql.cj.jdbc.Driver
+    driver-class-name: ${DB_DRIVER:org.h2.Driver}
 
   jpa:
     hibernate:
@@ -19,7 +19,7 @@ spring:
     properties:
       hibernate:
         format_sql: true
-        dialect: org.hibernate.dialect.MySQLDialect
+
 
   jackson:
     time-zone: UTC

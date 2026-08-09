@@ -124,12 +124,13 @@
 			</exclusions>
 		</dependency>
 
-		<!-- H2 Database for Testing -->
+		<!-- H2 Database for Testing & Production Fallback -->
 		<dependency>
 			<groupId>com.h2database</groupId>
 			<artifactId>h2</artifactId>
-			<scope>test</scope>
+			<scope>runtime</scope>
 		</dependency>
+
 	</dependencies>
 
 	<build>
