@@ -11,3 +11,11 @@
 
 3. **Project Architecture & Conventions:**
    - Always follow the detailed guidelines and conventions documented in [instruction.md](file:///g:/DuyTX/TripMate/instruction.md).
+
+## Production Deployment Environment Information
+
+- **Frontend (Web App):** [https://trip-mate-sand.vercel.app](https://trip-mate-sand.vercel.app) (Deployed on Vercel)
+- **Backend (REST APIs):** `https://tripmate-backend-0rts.onrender.com` (Deployed on Render.com with Docker Container)
+- **Database (Cloud MySQL):** Aiven.io MySQL 8.0 (`mysql-3dd3c20c-trxuanduy24tripmate.f.aivencloud.com:27267`, DB name: `defaultdb`)
+- **Demo Accounts File:** Refer to [demo_accounts.json](file:///g:/DuyTX/TripMate/demo_accounts.json) for test credentials.
+
