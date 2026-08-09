@@ -9,6 +9,8 @@ RUN mvn package -DskipTests
 # Stage 2: Runtime Container
 FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app
+RUN mkdir -p /app/logs
 COPY --from=build /app/target/*.jar app.jar
 EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "app.jar"]
+
