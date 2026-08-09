@@ -158,7 +158,7 @@ export const ChecklistItemModal = ({ isOpen, onClose, itemToEdit = null, onSucce
                   <option value="">-- {t('planning.checklist.unassigned', 'Chưa phân công')} --</option>
                   {members.map((m) => (
                     <option key={m.userId} value={m.userId}>
-                      {m.userFullName} {m.isGuest ? `(${t('common.guest', 'Thành viên ảo')})` : ''}
+                      {m.fullName} {m.isGuest ? `(${t('common.guest', 'Thành viên ảo')})` : ''}
                     </option>
                   ))}
                 </select>
