@@ -2,6 +2,7 @@ package com.tripmate.service.impl;
 
 import com.tripmate.dto.request.CreateExpenseRequest;
 import com.tripmate.dto.request.ExpenseSplitRequest;
+import com.tripmate.dto.request.UpdateExpenseRequest;
 import com.tripmate.dto.response.ExpenseResponse;
 import com.tripmate.dto.response.ExpenseSplitResponse;
 import com.tripmate.entity.*;
@@ -57,12 +58,10 @@ public class ExpenseServiceImpl implements ExpenseService {
         User payer = null;
 
         if (creatorMember.getRole() == Role.MEMBER) {
-            // Member enforces payment by themselves, not fund
             isPaidByFund = false;
             payer = createdBy;
             log.debug("Người tạo chi tiêu là MEMBER (ID: {}), tự động thiết lập nguồn trả là cá nhân", currentUserId);
         } else {
-            // Leader can choose fund or any member as payer
             if (Boolean.TRUE.equals(request.getIsPaidByFund())) {
                 isPaidByFund = true;
                 payer = null;
@@ -79,7 +78,6 @@ public class ExpenseServiceImpl implements ExpenseService {
             }
         }
 
-        // Validate Fund Balance if paid by fund
         if (isPaidByFund) {
             BigDecimal totalCollected = fundContributionRepository.sumAmountByTripId(trip.getId());
             if (totalCollected == null) totalCollected = BigDecimal.ZERO;
@@ -98,7 +96,6 @@ public class ExpenseServiceImpl implements ExpenseService {
             }
         }
 
-        // Validate participants and calculate splits
         List<ExpenseSplitRequest> splitRequests = request.getSplits();
         Map<Long, BigDecimal> computedSplits = computeSplits(request.getAmount(), request.getSplitType(), splitRequests, trip.getId());
 
@@ -152,12 +149,134 @@ public class ExpenseServiceImpl implements ExpenseService {
                 .toList();
     }
 
+    @Override
+    @Transactional
+    public ExpenseResponse updateExpense(Long expenseId, UpdateExpenseRequest request, Long currentUserId) {
+        log.info("Bắt đầu xử lý cập nhật khoản chi tiêu ID: {} bởi người dùng ID: {}", expenseId, currentUserId);
+
+        Expense expense = expenseRepository.findById(expenseId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy khoản chi tiêu với ID: " + expenseId));
+
+        Trip trip = expense.getTrip();
+
+        // Check authorization: only creator or LEADER can edit
+        TripMember currentMember = tripMemberRepository.findByTripIdAndUserId(trip.getId(), currentUserId)
+                .orElseThrow(() -> new UnauthorizedAccessException("Bạn không phải là thành viên của chuyến đi này"));
+
+        boolean isLeader = currentMember.getRole() == Role.LEADER;
+        boolean isCreator = expense.getCreatedBy().getId().equals(currentUserId);
+
+        if (!isLeader && !isCreator) {
+            throw new UnauthorizedAccessException("Bạn không có quyền sửa khoản chi tiêu này. Chỉ người tạo hoặc Trưởng nhóm mới có quyền sửa.");
+        }
+
+        // Determine payer
+        boolean isPaidByFund;
+        User payer = null;
+
+        if (!isLeader) {
+            // Members can only pay by themselves
+            isPaidByFund = false;
+            payer = expense.getCreatedBy();
+        } else {
+            if (Boolean.TRUE.equals(request.getIsPaidByFund())) {
+                isPaidByFund = true;
+                payer = null;
+            } else {
+                isPaidByFund = false;
+                Long targetPayerId = request.getPayerId() != null ? request.getPayerId() : currentUserId;
+                payer = userRepository.findById(targetPayerId)
+                        .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy người thanh toán với ID: " + targetPayerId));
+                if (!tripMemberRepository.existsByTripIdAndUserId(trip.getId(), payer.getId())) {
+                    throw new UnauthorizedAccessException("Người thanh toán chưa tham gia chuyến đi này");
+                }
+            }
+        }
+
+        // Validate fund balance if paid by fund (exclude current expense's old amount if it was also paid by fund)
+        if (isPaidByFund) {
+            BigDecimal totalCollected = fundContributionRepository.sumAmountByTripId(trip.getId());
+            if (totalCollected == null) totalCollected = BigDecimal.ZERO;
+
+            BigDecimal totalSpentFromFund = expenseRepository.sumAmountPaidByFundByTripId(trip.getId());
+            if (totalSpentFromFund == null) totalSpentFromFund = BigDecimal.ZERO;
+
+            // If this expense was already paid by fund, add back its old amount to available balance
+            BigDecimal oldFundAmount = Boolean.TRUE.equals(expense.getIsPaidByFund()) ? expense.getAmount() : BigDecimal.ZERO;
+            BigDecimal availableFundBalance = totalCollected.subtract(totalSpentFromFund).add(oldFundAmount);
+
+            if (availableFundBalance.compareTo(request.getAmount()) < 0) {
+                throw new InsufficientFundException("Số dư quỹ chung không đủ. Quỹ khả dụng: "
+                        + availableFundBalance + " VND, số tiền cần: " + request.getAmount() + " VND");
+            }
+        }
+
+        // Recompute splits
+        Map<Long, BigDecimal> computedSplits = computeSplits(request.getAmount(), request.getSplitType(), request.getSplits(), trip.getId());
+
+        // Update expense fields
+        expense.setDescription(request.getDescription().trim());
+        expense.setAmount(request.getAmount());
+        expense.setIsPaidByFund(isPaidByFund);
+        expense.setPayer(payer);
+        expense.setSplitType(request.getSplitType());
+
+        Expense updatedExpense = expenseRepository.save(expense);
+
+        // Delete old splits and create new ones
+        expenseSplitRepository.deleteByExpenseId(expenseId);
+
+        List<ExpenseSplit> newSplits = new ArrayList<>();
+        for (Map.Entry<Long, BigDecimal> entry : computedSplits.entrySet()) {
+            User participant = userRepository.findById(entry.getKey())
+                    .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy người tham gia với ID: " + entry.getKey()));
+
+            ExpenseSplit split = ExpenseSplit.builder()
+                    .expense(updatedExpense)
+                    .user(participant)
+                    .amountOwed(entry.getValue())
+                    .build();
+            newSplits.add(split);
+        }
+
+        expenseSplitRepository.saveAll(newSplits);
+        log.info("Cập nhật thành công khoản chi tiêu ID: {} với {} phân bổ mới", expenseId, newSplits.size());
+
+        return mapToExpenseResponse(updatedExpense, newSplits);
+    }
+
+    @Override
+    @Transactional
+    public void deleteExpense(Long expenseId, Long currentUserId) {
+        log.info("Bắt đầu xử lý xóa khoản chi tiêu ID: {} bởi người dùng ID: {}", expenseId, currentUserId);
+
+        Expense expense = expenseRepository.findById(expenseId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy khoản chi tiêu với ID: " + expenseId));
+
+        Trip trip = expense.getTrip();
+
+        TripMember currentMember = tripMemberRepository.findByTripIdAndUserId(trip.getId(), currentUserId)
+                .orElseThrow(() -> new UnauthorizedAccessException("Bạn không phải là thành viên của chuyến đi này"));
+
+        boolean isLeader = currentMember.getRole() == Role.LEADER;
+        boolean isCreator = expense.getCreatedBy().getId().equals(currentUserId);
+
+        if (!isLeader && !isCreator) {
+            throw new UnauthorizedAccessException("Bạn không có quyền xóa khoản chi tiêu này. Chỉ người tạo hoặc Trưởng nhóm mới có quyền xóa.");
+        }
+
+        // Delete splits first (FK constraint)
+        expenseSplitRepository.deleteByExpenseId(expenseId);
+        expenseRepository.deleteById(expenseId);
+
+        log.info("Đã xóa thành công khoản chi tiêu ID: {} khỏi chuyến đi ID: {}", expenseId, trip.getId());
+    }
+
     private Map<Long, BigDecimal> computeSplits(BigDecimal totalAmount, SplitType splitType, List<ExpenseSplitRequest> splits, Long tripId) {
         log.debug("Tính toán chia tiền cho tổng số tiền: {} VND, hình thức: {}, số người chia: {}",
                 totalAmount, splitType, splits != null ? splits.size() : 0);
         Map<Long, BigDecimal> result = new HashMap<>();
 
-        // Check each participant is member of trip
         for (ExpenseSplitRequest req : splits) {
             if (!tripMemberRepository.existsByTripIdAndUserId(tripId, req.getUserId())) {
                 throw new UnauthorizedAccessException("Người tham gia chia tiền (ID: " + req.getUserId() + ") chưa tham gia chuyến đi này");

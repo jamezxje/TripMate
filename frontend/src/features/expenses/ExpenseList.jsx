@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Receipt, Plus, RefreshCw, Wallet, UserCheck, Calendar, ArrowDownCircle, ArrowUpCircle } from 'lucide-react';
+import { Receipt, Plus, RefreshCw, Wallet, UserCheck, Calendar, ArrowDownCircle, ArrowUpCircle, Pencil, Trash2 } from 'lucide-react';
 import { Card } from '../../components/Card';
 import { Button } from '../../components/Button';
 import { Modal } from '../../components/Modal';
@@ -10,25 +10,64 @@ import { Skeleton } from '../../components/Skeleton';
 import { EmptyState } from '../../components/EmptyState';
 import { toast } from 'react-hot-toast';
 import { SplitExpenseForm } from './SplitExpenseForm';
+import { EditExpenseModal } from './EditExpenseModal';
 import { expenseApi } from './expenseApi';
 import { fundApi } from '../funds/fundApi';
 import { useTripStore } from '../../store/useTripStore';
+import { useUserStore } from '../../store/useUserStore';
 import { formatCurrency, formatDate } from '../../utils/formatters';
 
 export const ExpenseList = () => {
   const { t } = useTranslation();
   const { currentTrip } = useTripStore();
+  const { currentUser } = useUserStore();
   const [expenses, setExpenses] = useState([]);
   const [fundSummary, setFundSummary] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  
+  const [editExpense, setEditExpense] = useState(null);
+  const [deletingId, setDeletingId] = useState(null);
+
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(5);
-  
+
   // Filter state
   const [filterDate, setFilterDate] = useState('');
+
+  // Determine current user role in trip
+  const currentMember = currentTrip?.members?.find(
+    (m) => String(m.userId) === String(currentUser?.id)
+  );
+  const isLeader = currentMember?.role === 'LEADER';
+
+  // Check if user can edit/delete an expense
+  const canEditDelete = (expense) => {
+    if (!currentUser) return false;
+    return isLeader || String(expense.createdById) === String(currentUser.id);
+  };
+
+  const handleDelete = async (expense) => {
+    const hasSettled = expenses.some(() => false); // placeholder; warning shown via confirm
+    const warningMsg = isLeader
+      ? `⚠️ Lưu ý: Nếu đã có giao dịch quyết toán được xác nhận, xóa chi tiêu này có thể làm lệch số liệu.\n\n`
+      : '';
+    const confirmed = window.confirm(
+      `${warningMsg}Bạn có chắc muốn xóa khoản chi "${expense.description}" (${formatCurrency(expense.amount)}) không?\nHành động này không thể hoàn tác.`
+    );
+    if (!confirmed) return;
+
+    setDeletingId(expense.id);
+    try {
+      await expenseApi.deleteExpense(expense.id);
+      toast.success('Đã xóa khoản chi tiêu thành công!');
+      fetchExpenses();
+    } catch (err) {
+      toast.error(err.response?.data?.message || err.message || 'Xóa thất bại');
+    } finally {
+      setDeletingId(null);
+    }
+  };
 
   const fetchExpenses = useCallback(async () => {
     if (!currentTrip?.id) return;
@@ -201,7 +240,7 @@ export const ExpenseList = () => {
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-5 bg-white dark:bg-slate-800 relative">
                 {/* Decorative side accent */}
                 <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-rose-400 to-orange-400 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                
+
                 <div className="flex items-start gap-4">
                   <div className="p-3.5 bg-gradient-to-br from-rose-50 to-orange-50 dark:from-rose-900/30 dark:to-orange-900/20 text-rose-500 dark:text-rose-400 rounded-2xl shrink-0 border border-rose-100/50 dark:border-rose-800/50 shadow-inner">
                     <Receipt className="w-6 h-6" />
@@ -219,11 +258,11 @@ export const ExpenseList = () => {
                   </div>
                 </div>
 
-                <div className="flex flex-col md:items-end mt-2 md:mt-0">
+                <div className="flex flex-col md:items-end mt-2 md:mt-0 gap-2">
                   <span className="text-2xl font-black text-slate-800 dark:text-slate-100 tracking-tight">
                     {formatCurrency(item.amount)}
                   </span>
-                  <div className="mt-1.5 flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap justify-end">
                     {item.isPaidByFund ? (
                       <Badge variant="settled" className="gap-1 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800/50">
                         <Wallet className="w-3.5 h-3.5" /> Trả từ Quỹ
@@ -239,6 +278,33 @@ export const ExpenseList = () => {
                     )}
                     <Badge variant="info" className="bg-indigo-50 text-indigo-700 border-indigo-200">{item.splitType}</Badge>
                   </div>
+
+                  {/* Edit / Delete Actions */}
+                  {canEditDelete(item) && (
+                    <div className="flex items-center gap-1.5 mt-1">
+                      <button
+                        onClick={() => setEditExpense(item)}
+                        className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold text-indigo-600 hover:text-indigo-700 bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-900/20 dark:hover:bg-indigo-900/40 dark:text-indigo-400 rounded-lg transition-all"
+                        title="Sửa khoản chi"
+                      >
+                        <Pencil className="w-3.5 h-3.5" />
+                        Sửa
+                      </button>
+                      <button
+                        onClick={() => handleDelete(item)}
+                        disabled={deletingId === item.id}
+                        className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 dark:bg-rose-900/20 dark:hover:bg-rose-900/40 dark:text-rose-400 rounded-lg transition-all disabled:opacity-50"
+                        title="Xóa khoản chi"
+                      >
+                        {deletingId === item.id ? (
+                          <div className="w-3.5 h-3.5 border-2 border-rose-400/30 border-t-rose-500 rounded-full animate-spin" />
+                        ) : (
+                          <Trash2 className="w-3.5 h-3.5" />
+                        )}
+                        Xóa
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -386,6 +452,18 @@ export const ExpenseList = () => {
           onCancel={() => setIsModalOpen(false)}
         />
       </Modal>
+
+      {/* Edit Expense Modal */}
+      <EditExpenseModal
+        isOpen={!!editExpense}
+        onClose={() => setEditExpense(null)}
+        expense={editExpense}
+        fundBalance={fundSummary?.currentBalance || 0}
+        onSuccess={() => {
+          setEditExpense(null);
+          fetchExpenses();
+        }}
+      />
     </AnimatedPage>
   );
 };
