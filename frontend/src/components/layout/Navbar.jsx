@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Link } from 'react-router-dom';
 import { Compass, LogOut, Globe, ChevronDown, User, Settings, Moon, Sun } from 'lucide-react';
 import { useUserStore } from '../../store/useUserStore';
 import { useThemeStore } from '../../store/useThemeStore';
@@ -31,19 +32,19 @@ export const Navbar = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 sm:h-20">
           {/* Logo & Brand */}
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl flex items-center justify-center overflow-hidden shadow-sm border border-slate-200/60 dark:border-slate-700/60">
+          <Link to="/" className="flex items-center gap-3 group">
+            <div className="w-10 h-10 rounded-2xl flex items-center justify-center overflow-hidden shadow-sm border border-slate-200/60 dark:border-slate-700/60 group-hover:shadow-md transition-shadow duration-200">
               <img src="/logo.png" alt="TripMate Logo" className="w-full h-full object-cover" />
             </div>
             <div>
-              <span className="text-xl font-black bg-gradient-to-r from-violet-600 to-indigo-700 bg-clip-text text-transparent tracking-tight">
+              <span className="text-xl font-black bg-gradient-to-r from-violet-600 to-indigo-700 bg-clip-text text-transparent tracking-tight group-hover:from-violet-700 group-hover:to-indigo-800 transition-all duration-200">
                 TripMate
               </span>
               <span className="hidden sm:inline-block ml-2 text-[10px] font-bold px-2 py-0.5 rounded-full bg-violet-100 text-violet-700 uppercase tracking-widest">
                 BETA
               </span>
             </div>
-          </div>
+          </Link>
 
           {/* Right Actions: i18n, User Profile */}
           <div className="flex items-center gap-2 sm:gap-4">
