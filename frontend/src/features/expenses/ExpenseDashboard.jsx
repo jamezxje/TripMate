@@ -71,14 +71,20 @@ export const ExpenseDashboard = () => {
   const circumference = 2 * Math.PI * radius;
   let currentOffset = 0;
   
+  // Create a small gap between slices if there are multiple slices
+  const hasMultipleSlices = groupedByCategory.length > 1;
+  const gap = hasMultipleSlices ? 3 : 0; // 3 units gap
+  
   const slices = groupedByCategory.map(group => {
     const percentage = (group.total / totalAmount);
     if (percentage === 0) return null;
     const strokeLength = percentage * circumference;
+    const actualStrokeLength = Math.max(0, strokeLength - gap);
+    
     const slice = {
       ...group,
       strokeLength,
-      strokeDasharray: `${strokeLength} ${circumference}`,
+      strokeDasharray: `${actualStrokeLength} ${circumference}`,
       strokeDashoffset: -currentOffset,
       percentage: (percentage * 100).toFixed(1)
     };
@@ -183,19 +189,22 @@ export const ExpenseDashboard = () => {
                 </div>
 
                 {/* Legend */}
-                <div className="flex-1 w-full grid grid-cols-2 gap-x-4 gap-y-3">
+                <div className="flex-1 w-full flex flex-col gap-2.5 sm:max-w-xs">
                   {slices.map((slice) => (
                     <div 
                       key={slice.id} 
-                      className="flex items-center gap-2.5 p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer"
+                      className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer border border-transparent hover:border-slate-100 dark:hover:border-slate-700/50"
                       onClick={() => toggleCategory(slice.id)}
                     >
-                      <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 shadow-sm" style={{ backgroundColor: `${slice.color}20`, color: slice.color }}>
-                        {slice.icon}
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 shadow-sm" style={{ backgroundColor: `${slice.color}20`, color: slice.color }}>
+                          {slice.icon}
+                        </div>
+                        <p className="text-sm font-bold text-slate-700 dark:text-slate-200">{slice.name}</p>
                       </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm font-bold text-slate-700 dark:text-slate-200 truncate">{slice.name}</p>
-                        <p className="text-[11px] font-medium text-slate-500">{slice.percentage}%</p>
+                      <div className="text-right">
+                        <p className="text-sm font-black text-slate-800 dark:text-slate-100">{formatCurrency(slice.total).replace(' ₫', 'đ')}</p>
+                        <p className="text-[11px] font-bold text-slate-400">{slice.percentage}%</p>
                       </div>
                     </div>
                   ))}
