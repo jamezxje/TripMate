@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { DollarSign, FileText, UserCheck, Wallet, CheckSquare, Square, AlertTriangle } from 'lucide-react';
+import { DollarSign, FileText, UserCheck, Wallet, CheckSquare, Square, AlertTriangle, Tag } from 'lucide-react';
 import { Input } from '../../components/Input';
 import { Button } from '../../components/Button';
 import { toast } from 'react-hot-toast';
 import { expenseApi } from './expenseApi';
+import { useCategoryList } from './useCategoryList';
 import { useUserStore } from '../../store/useUserStore';
 import { useTripStore } from '../../store/useTripStore';
 import { formatCurrency } from '../../utils/formatters';
@@ -13,6 +14,7 @@ export const SplitExpenseForm = ({ onSuccess, onCancel, fundBalance = 0 }) => {
   const { t } = useTranslation();
   const { currentUser } = useUserStore();
   const { currentTrip } = useTripStore();
+  const { categories } = useCategoryList();
 
   // Find user role in current trip
   const currentMember = currentTrip?.members?.find(
@@ -26,6 +28,7 @@ export const SplitExpenseForm = ({ onSuccess, onCancel, fundBalance = 0 }) => {
   const [isPaidByFund, setIsPaidByFund] = useState(false);
   const [payerId, setPayerId] = useState(currentUser?.id || '');
   const [splitType, setSplitType] = useState('EQUAL'); // EQUAL or EXACT_AMOUNT
+  const [categoryId, setCategoryId] = useState('');
 
   // Participants selection & amounts
   const [selectedUserIds, setSelectedUserIds] = useState(
@@ -118,6 +121,7 @@ export const SplitExpenseForm = ({ onSuccess, onCancel, fundBalance = 0 }) => {
         payerId: isLeader && isPaidByFund ? null : Number(payerId),
         splitType,
         splits,
+        categoryId: categoryId ? Number(categoryId) : null,
       };
 
       await expenseApi.createExpense(payload);
@@ -216,6 +220,45 @@ export const SplitExpenseForm = ({ onSuccess, onCancel, fundBalance = 0 }) => {
           </div>
         )}
       </div>
+
+      {/* Category Selector */}
+      {categories.length > 0 && (
+        <div className="flex flex-col gap-2">
+          <label className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+            <Tag className="w-3.5 h-3.5 text-slate-500" />
+            Danh mục chi tiêu
+          </label>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => setCategoryId('')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border transition-all ${
+                !categoryId
+                  ? 'bg-slate-800 text-white border-slate-800'
+                  : 'bg-white text-slate-500 border-slate-200 hover:border-slate-400'
+              }`}
+            >
+              Tất cả
+            </button>
+            {categories.map((cat) => (
+              <button
+                key={cat.id}
+                type="button"
+                onClick={() => setCategoryId(String(cat.id))}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border transition-all ${
+                  String(categoryId) === String(cat.id)
+                    ? 'text-white border-transparent'
+                    : 'bg-white text-slate-600 border-slate-200 hover:border-slate-400'
+                }`}
+                style={String(categoryId) === String(cat.id) ? { backgroundColor: cat.color, borderColor: cat.color } : {}}
+              >
+                <span>{cat.icon}</span>
+                {cat.name}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Split Type Tabs */}
       <div>

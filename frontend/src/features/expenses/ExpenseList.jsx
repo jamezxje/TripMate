@@ -254,6 +254,17 @@ export const ExpenseList = () => {
                       </span>
                       <span>•</span>
                       <span className="flex items-center gap-1">Người tạo: <strong className="text-slate-700 dark:text-slate-200">{item.createdByName}</strong></span>
+                      {item.categoryName && (
+                        <>
+                          <span>•</span>
+                          <span
+                            className="flex items-center gap-1 px-2 py-0.5 rounded-full text-white font-bold text-[10px]"
+                            style={{ backgroundColor: item.categoryColor || '#6b7280' }}
+                          >
+                            {item.categoryIcon} {item.categoryName}
+                          </span>
+                        </>
+                      )}
                     </div>
                   </div>
                 </div>

@@ -44,6 +44,10 @@ public class Expense {
     @JoinColumn(name = "created_by", nullable = false, foreignKey = @ForeignKey(name = "fk_expenses_created_by"))
     private User createdBy;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id", foreignKey = @ForeignKey(name = "fk_expenses_category"))
+    private PlannedExpenseCategory category;
+
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 

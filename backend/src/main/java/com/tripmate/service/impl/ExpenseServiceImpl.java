@@ -38,6 +38,7 @@ public class ExpenseServiceImpl implements ExpenseService {
     private final UserRepository userRepository;
     private final TripMemberRepository tripMemberRepository;
     private final FundContributionRepository fundContributionRepository;
+    private final PlannedExpenseCategoryRepository categoryRepository;
 
     @Override
     @Transactional
@@ -99,6 +100,12 @@ public class ExpenseServiceImpl implements ExpenseService {
         List<ExpenseSplitRequest> splitRequests = request.getSplits();
         Map<Long, BigDecimal> computedSplits = computeSplits(request.getAmount(), request.getSplitType(), splitRequests, trip.getId());
 
+        // Resolve category (optional)
+        PlannedExpenseCategory category = null;
+        if (request.getCategoryId() != null) {
+            category = categoryRepository.findById(request.getCategoryId()).orElse(null);
+        }
+
         Expense expense = Expense.builder()
                 .trip(trip)
                 .description(request.getDescription().trim())
@@ -107,6 +114,7 @@ public class ExpenseServiceImpl implements ExpenseService {
                 .payer(payer)
                 .splitType(request.getSplitType())
                 .createdBy(createdBy)
+                .category(category)
                 .build();
 
         Expense savedExpense = expenseRepository.save(expense);
@@ -214,12 +222,19 @@ public class ExpenseServiceImpl implements ExpenseService {
         // Recompute splits
         Map<Long, BigDecimal> computedSplits = computeSplits(request.getAmount(), request.getSplitType(), request.getSplits(), trip.getId());
 
+        // Resolve category (optional)
+        PlannedExpenseCategory category = null;
+        if (request.getCategoryId() != null) {
+            category = categoryRepository.findById(request.getCategoryId()).orElse(null);
+        }
+
         // Update expense fields
         expense.setDescription(request.getDescription().trim());
         expense.setAmount(request.getAmount());
         expense.setIsPaidByFund(isPaidByFund);
         expense.setPayer(payer);
         expense.setSplitType(request.getSplitType());
+        expense.setCategory(category);
 
         Expense updatedExpense = expenseRepository.save(expense);
 
@@ -330,6 +345,8 @@ public class ExpenseServiceImpl implements ExpenseService {
                         .build())
                 .toList();
 
+        PlannedExpenseCategory cat = expense.getCategory();
+
         return ExpenseResponse.builder()
                 .id(expense.getId())
                 .tripId(expense.getTrip().getId())
@@ -343,6 +360,10 @@ public class ExpenseServiceImpl implements ExpenseService {
                 .createdByName(expense.getCreatedBy().getFullName())
                 .createdAt(expense.getCreatedAt())
                 .splits(splitResponses)
+                .categoryId(cat != null ? cat.getId() : null)
+                .categoryName(cat != null ? cat.getName() : null)
+                .categoryIcon(cat != null ? cat.getIcon() : null)
+                .categoryColor(cat != null ? cat.getColor() : null)
                 .build();
     }
 }

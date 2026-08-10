@@ -40,4 +40,6 @@ public class CreateExpenseRequest {
     @NotEmpty(message = "Danh sách người tham gia chia tiền không được để trống")
     @Valid
     private List<ExpenseSplitRequest> splits;
+
+    private Long categoryId;
 }

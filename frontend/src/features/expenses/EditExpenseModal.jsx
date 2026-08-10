@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { DollarSign, FileText, UserCheck, Wallet, CheckSquare, Square, X, Pencil } from 'lucide-react';
+import { DollarSign, FileText, UserCheck, Wallet, CheckSquare, Square, X, Pencil, Tag } from 'lucide-react';
 import { Input } from '../../components/Input';
 import { Button } from '../../components/Button';
 import { toast } from 'react-hot-toast';
 import { expenseApi } from './expenseApi';
+import { useCategoryList } from './useCategoryList';
 import { useUserStore } from '../../store/useUserStore';
 import { useTripStore } from '../../store/useTripStore';
 import { formatCurrency } from '../../utils/formatters';
@@ -13,6 +14,7 @@ export const EditExpenseModal = ({ isOpen, onClose, expense, fundBalance = 0, on
   const { t } = useTranslation();
   const { currentUser } = useUserStore();
   const { currentTrip } = useTripStore();
+  const { categories } = useCategoryList();
 
   const currentMember = currentTrip?.members?.find(
     (m) => String(m.userId) === String(currentUser?.id)
@@ -27,6 +29,7 @@ export const EditExpenseModal = ({ isOpen, onClose, expense, fundBalance = 0, on
   const [selectedUserIds, setSelectedUserIds] = useState([]);
   const [exactAmounts, setExactAmounts] = useState({});
   const [isLoading, setIsLoading] = useState(false);
+  const [categoryId, setCategoryId] = useState('');
 
   // Pre-fill form when expense changes
   useEffect(() => {
@@ -36,6 +39,7 @@ export const EditExpenseModal = ({ isOpen, onClose, expense, fundBalance = 0, on
       setIsPaidByFund(expense.isPaidByFund || false);
       setPayerId(expense.payerId ? String(expense.payerId) : '');
       setSplitType(expense.splitType || 'EQUAL');
+      setCategoryId(expense.categoryId ? String(expense.categoryId) : '');
 
       const splitUserIds = expense.splits?.map((s) => s.userId) || [];
       setSelectedUserIds(splitUserIds);
@@ -111,6 +115,7 @@ export const EditExpenseModal = ({ isOpen, onClose, expense, fundBalance = 0, on
         payerId: isLeader && isPaidByFund ? null : Number(payerId || currentUser?.id),
         splitType,
         splits,
+        categoryId: categoryId ? Number(categoryId) : null,
       };
 
       await expenseApi.updateExpense(expense.id, payload);
@@ -232,6 +237,45 @@ export const EditExpenseModal = ({ isOpen, onClose, expense, fundBalance = 0, on
               </div>
             )}
           </div>
+
+          {/* Category Selector */}
+          {categories.length > 0 && (
+            <div className="flex flex-col gap-2">
+              <label className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+                <Tag className="w-3.5 h-3.5 text-slate-500" />
+                Danh mục chi tiêu
+              </label>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => setCategoryId('')}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border transition-all ${
+                    !categoryId
+                      ? 'bg-slate-800 text-white border-slate-800'
+                      : 'bg-white dark:bg-slate-800 text-slate-500 border-slate-200 dark:border-slate-600 hover:border-slate-400'
+                  }`}
+                >
+                  Không phân loại
+                </button>
+                {categories.map((cat) => (
+                  <button
+                    key={cat.id}
+                    type="button"
+                    onClick={() => setCategoryId(String(cat.id))}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border transition-all ${
+                      String(categoryId) === String(cat.id)
+                        ? 'text-white border-transparent'
+                        : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-600 hover:border-slate-400'
+                    }`}
+                    style={String(categoryId) === String(cat.id) ? { backgroundColor: cat.color, borderColor: cat.color } : {}}
+                  >
+                    <span>{cat.icon}</span>
+                    {cat.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Split Type */}
           <div>

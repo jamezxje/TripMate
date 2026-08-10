@@ -28,4 +28,10 @@ public class ExpenseResponse {
     private String createdByName;
     private LocalDateTime createdAt;
     private List<ExpenseSplitResponse> splits;
+
+    // Category info
+    private Long categoryId;
+    private String categoryName;
+    private String categoryIcon;
+    private String categoryColor;
 }
