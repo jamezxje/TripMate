@@ -71,9 +71,9 @@ export const ExpenseDashboard = () => {
   const circumference = 2 * Math.PI * radius;
   let currentOffset = 0;
   
-  // Create a small gap between slices if there are multiple slices
+  // Add a gap to account for strokeLinecap="round" extending the stroke
   const hasMultipleSlices = groupedByCategory.length > 1;
-  const gap = hasMultipleSlices ? 3 : 0; // 3 units gap
+  const gap = hasMultipleSlices ? 12 : 0; // larger gap to accommodate round caps
   
   const slices = groupedByCategory.map(group => {
     const percentage = (group.total / totalAmount);
@@ -173,6 +173,7 @@ export const ExpenseDashboard = () => {
                         strokeWidth="18"
                         strokeDasharray={slice.strokeDasharray}
                         strokeDashoffset={slice.strokeDashoffset}
+                        strokeLinecap="round"
                         className="transition-all duration-1000 ease-in-out hover:opacity-80 hover:stroke-[22px] cursor-pointer"
                         title={`${slice.name}: ${formatCurrency(slice.total)} (${slice.percentage}%)`}
                       />
@@ -189,22 +190,18 @@ export const ExpenseDashboard = () => {
                 </div>
 
                 {/* Legend */}
-                <div className="flex-1 w-full flex flex-col gap-2.5 sm:max-w-xs">
+                <div className="flex-1 w-full flex flex-col gap-3 sm:max-w-xs justify-center">
                   {slices.map((slice) => (
                     <div 
                       key={slice.id} 
-                      className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer border border-transparent hover:border-slate-100 dark:hover:border-slate-700/50"
+                      className="flex items-center gap-4 p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer border border-transparent hover:border-slate-100 dark:hover:border-slate-700/50"
                       onClick={() => toggleCategory(slice.id)}
                     >
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 shadow-sm" style={{ backgroundColor: `${slice.color}20`, color: slice.color }}>
-                          {slice.icon}
-                        </div>
-                        <p className="text-sm font-bold text-slate-700 dark:text-slate-200">{slice.name}</p>
-                      </div>
+                      <div className="w-3.5 h-3.5 rounded-full shrink-0 shadow-sm" style={{ backgroundColor: slice.color }}></div>
+                      <p className="text-sm font-bold text-slate-700 dark:text-slate-200 min-w-[3rem]">{slice.percentage}%</p>
+                      <p className="text-sm font-medium text-slate-600 dark:text-slate-300 flex-1 truncate">{slice.name}</p>
                       <div className="text-right">
-                        <p className="text-sm font-black text-slate-800 dark:text-slate-100">{formatCurrency(slice.total).replace(' ₫', 'đ')}</p>
-                        <p className="text-[11px] font-bold text-slate-400">{slice.percentage}%</p>
+                        <p className="text-xs font-bold text-slate-800 dark:text-slate-100">{formatCurrency(slice.total).replace(' ₫', 'đ')}</p>
                       </div>
                     </div>
                   ))}
