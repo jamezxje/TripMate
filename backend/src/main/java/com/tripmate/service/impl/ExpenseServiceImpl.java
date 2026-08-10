@@ -240,6 +240,7 @@ public class ExpenseServiceImpl implements ExpenseService {
 
         // Delete old splits and create new ones
         expenseSplitRepository.deleteByExpenseId(expenseId);
+        expenseSplitRepository.flush();
 
         List<ExpenseSplit> newSplits = new ArrayList<>();
         for (Map.Entry<Long, BigDecimal> entry : computedSplits.entrySet()) {
