@@ -71,20 +71,15 @@ export const ExpenseDashboard = () => {
   const circumference = 2 * Math.PI * radius;
   let currentOffset = 0;
   
-  // Add a gap to account for strokeLinecap="round" extending the stroke
-  const hasMultipleSlices = groupedByCategory.length > 1;
-  const gap = hasMultipleSlices ? 12 : 0; // larger gap to accommodate round caps
-  
   const slices = groupedByCategory.map(group => {
     const percentage = (group.total / totalAmount);
     if (percentage === 0) return null;
     const strokeLength = percentage * circumference;
-    const actualStrokeLength = Math.max(0, strokeLength - gap);
     
     const slice = {
       ...group,
       strokeLength,
-      strokeDasharray: `${actualStrokeLength} ${circumference}`,
+      strokeDasharray: `${strokeLength} ${circumference}`,
       strokeDashoffset: -currentOffset,
       percentage: (percentage * 100).toFixed(1)
     };
