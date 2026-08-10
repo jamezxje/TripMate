@@ -5,6 +5,7 @@ import { ProtectedRoute } from '../components/ProtectedRoute';
 import { TripList } from '../features/trips/TripList';
 import { FundSummaryView } from '../features/funds/FundSummaryView';
 import { ExpenseList } from '../features/expenses/ExpenseList';
+import { ExpenseDashboard } from '../features/expenses/ExpenseDashboard';
 import { SettlementDashboard } from '../features/settlement/SettlementDashboard';
 import { LoginPage } from '../features/auth/LoginPage';
 import { RegisterPage } from '../features/auth/RegisterPage';
@@ -24,6 +25,7 @@ export const AppRoutes = () => {
             <Route index element={<TripList />} />
             <Route path="funds" element={<FundSummaryView />} />
             <Route path="expenses" element={<ExpenseList />} />
+            <Route path="dashboard" element={<ExpenseDashboard />} />
             <Route path="planning" element={<PlanningDashboard />} />
             <Route path="settlement" element={<SettlementDashboard />} />
           </Route>

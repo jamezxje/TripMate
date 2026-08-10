@@ -22,7 +22,7 @@ public class DataInitializer implements CommandLineRunner {
     @Override
     public void run(String... args) {
         // Seed default users
-        if (!userRepository.existsById(1L)) {
+        if (!userRepository.existsByEmail("anv@example.com")) {
             userRepository.save(User.builder()
                     .email("anv@example.com")
                     .fullName("Nguyễn Văn A")
@@ -30,7 +30,7 @@ public class DataInitializer implements CommandLineRunner {
                     .build());
         }
 
-        if (!userRepository.existsById(2L)) {
+        if (!userRepository.existsByEmail("btt@example.com")) {
             userRepository.save(User.builder()
                     .email("btt@example.com")
                     .fullName("Trần Thị B")
@@ -38,7 +38,7 @@ public class DataInitializer implements CommandLineRunner {
                     .build());
         }
 
-        if (!userRepository.existsById(3L)) {
+        if (!userRepository.existsByEmail("lvc@example.com")) {
             userRepository.save(User.builder()
                     .email("lvc@example.com")
                     .fullName("Lê Văn C")
