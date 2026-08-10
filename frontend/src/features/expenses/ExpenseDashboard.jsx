@@ -67,6 +67,25 @@ export const ExpenseDashboard = () => {
     return { totalAmount: total, groupedByCategory: sortedGroups };
   }, [expenses]);
 
+  const radius = 56;
+  const circumference = 2 * Math.PI * radius;
+  let currentOffset = 0;
+  
+  const slices = groupedByCategory.map(group => {
+    const percentage = (group.total / totalAmount);
+    if (percentage === 0) return null;
+    const strokeLength = percentage * circumference;
+    const slice = {
+      ...group,
+      strokeLength,
+      strokeDasharray: `${strokeLength} ${circumference}`,
+      strokeDashoffset: -currentOffset,
+      percentage: (percentage * 100).toFixed(1)
+    };
+    currentOffset += strokeLength;
+    return slice;
+  }).filter(Boolean);
+
   if (!currentTrip) {
     return (
       <AnimatedPage className="flex flex-col items-center justify-center py-12 px-4 text-center">
@@ -127,35 +146,59 @@ export const ExpenseDashboard = () => {
             </div>
           ) : (
             <div className="space-y-8">
-              {/* Multi-color Progress Bar */}
-              <div className="space-y-3">
-                <div className="w-full h-6 flex rounded-full overflow-hidden bg-slate-100 dark:bg-slate-800 shadow-inner">
-                  {groupedByCategory.map((group) => {
-                    const percentage = (group.total / totalAmount) * 100;
-                    if (percentage === 0) return null;
-                    return (
-                      <div
-                        key={group.id}
-                        className="h-full transition-all duration-500 group relative hover:opacity-90 cursor-pointer"
-                        style={{ width: `${percentage}%`, backgroundColor: group.color }}
-                        title={`${group.name}: ${formatCurrency(group.total)} (${percentage.toFixed(1)}%)`}
+              {/* SVG Donut Chart & Legend */}
+              <div className="flex flex-col md:flex-row items-center justify-center gap-8 md:gap-12 py-4">
+                {/* Chart */}
+                <div className="relative w-52 h-52 shrink-0 group">
+                  <svg className="w-full h-full -rotate-90 drop-shadow-sm" viewBox="0 0 140 140">
+                    <circle
+                      cx="70" cy="70" r={radius}
+                      fill="transparent"
+                      stroke="#f1f5f9"
+                      strokeWidth="18"
+                      className="dark:stroke-slate-800 transition-colors"
+                    />
+                    {slices.map((slice) => (
+                      <circle
+                        key={slice.id}
+                        cx="70" cy="70" r={radius}
+                        fill="transparent"
+                        stroke={slice.color}
+                        strokeWidth="18"
+                        strokeDasharray={slice.strokeDasharray}
+                        strokeDashoffset={slice.strokeDashoffset}
+                        className="transition-all duration-1000 ease-in-out hover:opacity-80 hover:stroke-[22px] cursor-pointer"
+                        title={`${slice.name}: ${formatCurrency(slice.total)} (${slice.percentage}%)`}
                       />
-                    );
-                  })}
+                    ))}
+                  </svg>
+                  {/* Center Text */}
+                  <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                    <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Tổng cộng</span>
+                    <span className="text-sm sm:text-base font-black text-slate-800 dark:text-slate-100 mt-0.5">
+                      {formatCurrency(totalAmount).replace(' đ', '').replace(' ₫', '')}
+                    </span>
+                    <span className="text-xs font-bold text-slate-800 dark:text-slate-100">VNĐ</span>
+                  </div>
                 </div>
+
                 {/* Legend */}
-                <div className="flex flex-wrap gap-x-4 gap-y-2 mt-3">
-                  {groupedByCategory.map((group) => {
-                    const percentage = (group.total / totalAmount) * 100;
-                    if (percentage === 0) return null;
-                    return (
-                      <div key={group.id} className="flex items-center gap-1.5 text-xs font-medium text-slate-600 dark:text-slate-300">
-                        <span className="w-3 h-3 rounded-full" style={{ backgroundColor: group.color }} />
-                        <span>{group.icon} {group.name}</span>
-                        <span className="text-slate-400 font-normal">({percentage.toFixed(1)}%)</span>
+                <div className="flex-1 w-full grid grid-cols-2 gap-x-4 gap-y-3">
+                  {slices.map((slice) => (
+                    <div 
+                      key={slice.id} 
+                      className="flex items-center gap-2.5 p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer"
+                      onClick={() => toggleCategory(slice.id)}
+                    >
+                      <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 shadow-sm" style={{ backgroundColor: `${slice.color}20`, color: slice.color }}>
+                        {slice.icon}
                       </div>
-                    );
-                  })}
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-bold text-slate-700 dark:text-slate-200 truncate">{slice.name}</p>
+                        <p className="text-[11px] font-medium text-slate-500">{slice.percentage}%</p>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
 
